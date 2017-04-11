@@ -117,7 +117,7 @@ int THREAD_cleanup() {
 }
 
 void stop_sender(int sig) {
-	done = 1; 
+	done = 1;
 }
 
 struct pass_info {
@@ -239,11 +239,11 @@ void* connection_handle(void *info) {
 
 	if (verbose)
 		printf ("\nThread %lx: accepted connection from %s:%u\n",
-		        (long) pthread_self(), pinfo->address, pinfo->port);
+				(long) pthread_self(), pinfo->address, pinfo->port);
 	if (veryverbose && SSL_get_peer_certificate(ssl)) {
 		printf ("------------------------------------------------------------\n");
 		X509_NAME_print_ex_fp(stdout, X509_get_subject_name(SSL_get_peer_certificate(ssl)),
-		                      1, XN_FLAG_MULTILINE);
+							  1, XN_FLAG_MULTILINE);
 		printf("\n\n Cipher: %s", SSL_CIPHER_get_name(SSL_get_current_cipher(ssl)));
 		printf ("\n------------------------------------------------------------\n\n");
 	}
@@ -279,7 +279,7 @@ void* connection_handle(void *info) {
 							BIO_ctrl(bio, BIO_CTRL_DGRAM_SCTP_GET_RCVINFO, sizeof(struct bio_dgram_sctp_rcvinfo), &rinfo);
 							if (verbose) {
 								printf("Thread %lx: read message with %d bytes on stream %u\n", (long) pthread_self(),
-								       (int) len, rinfo.rcv_sid);
+									   (int) len, rinfo.rcv_sid);
 							}
 
 							rcvcount++;
@@ -292,19 +292,19 @@ void* connection_handle(void *info) {
 						case SSL_ERROR_ZERO_RETURN:
 							reading = 0;
 							break;
-                        case SSL_ERROR_SYSCALL:
-                            perror("Socket read error");
-                            goto cleanup;
-                            break;
-                        case SSL_ERROR_SSL:
-                            printf("SSL read error: ");
-                            printf("%s (%d)\n", ERR_error_string(ERR_get_error(), buf), SSL_get_error(ssl, len));
-                            goto cleanup;
-                            break;
-                        default:
-                            printf("Unexpected error while reading!\n");
-                            goto cleanup;
-                            break;
+						case SSL_ERROR_SYSCALL:
+							perror("Socket read error");
+							goto cleanup;
+							break;
+						case SSL_ERROR_SSL:
+							printf("SSL read error: ");
+							printf("%s (%d)\n", ERR_error_string(ERR_get_error(), buf), SSL_get_error(ssl, len));
+							goto cleanup;
+							break;
+						default:
+							printf("Unexpected error while reading!\n");
+							goto cleanup;
+							break;
 					}
 				}
 			}
@@ -321,7 +321,7 @@ void* connection_handle(void *info) {
 		printf("\nThread %lx: Statistics for %s:\n=========================================================\n",
 			   (long) pthread_self(), pinfo->address);
 		printf("Thread %lx: Received messages:                %6d\n\n", (long) pthread_self(), rcvcount);
-		
+
 		for (i = 0; streamrcvcount[i] > 0; i++)
 			printf("Thread %lx: Received messages on stream %3d:  %6d\n", (long) pthread_self(), i, streamrcvcount[i]);
 	}
@@ -351,9 +351,9 @@ void start_server(int port, char *local_address) {
 	struct sctp_event event;
 	unsigned int i;
 	uint16_t event_types[] = {SCTP_ASSOC_CHANGE,
-	                          SCTP_PEER_ADDR_CHANGE,
-	                          SCTP_SHUTDOWN_EVENT,
-	                          SCTP_ADAPTATION_INDICATION};
+							  SCTP_PEER_ADDR_CHANGE,
+							  SCTP_SHUTDOWN_EVENT,
+							  SCTP_ADAPTATION_INDICATION};
 #else
 	struct sctp_event_subscribe event;
 #endif
@@ -506,9 +506,9 @@ void start_client(char *remote_address, char* local_address, int port, int timet
 #ifdef SCTP_EVENT
 	struct sctp_event event;
 	uint16_t event_types[] = {SCTP_ASSOC_CHANGE,
-	                          SCTP_PEER_ADDR_CHANGE,
-	                          SCTP_SHUTDOWN_EVENT,
-	                          SCTP_ADAPTATION_INDICATION};
+							  SCTP_PEER_ADDR_CHANGE,
+							  SCTP_SHUTDOWN_EVENT,
+							  SCTP_ADAPTATION_INDICATION};
 #else
 	struct sctp_event_subscribe event;
 #endif
@@ -635,17 +635,17 @@ void start_client(char *remote_address, char* local_address, int port, int timet
 	if (verbose) {
 		if (remote_addr.ss.ss_family == AF_INET) {
 			printf ("\nConnected to %s:%u\n",
-			        inet_ntop(AF_INET, &remote_addr.s4.sin_addr, addrbuf, INET6_ADDRSTRLEN), port);
+					inet_ntop(AF_INET, &remote_addr.s4.sin_addr, addrbuf, INET6_ADDRSTRLEN), port);
 		} else {
 			printf ("\nConnected to %s:%u\n",
-			        inet_ntop(AF_INET6, &remote_addr.s6.sin6_addr, addrbuf, INET6_ADDRSTRLEN), port);
+					inet_ntop(AF_INET6, &remote_addr.s6.sin6_addr, addrbuf, INET6_ADDRSTRLEN), port);
 		}
 	}
 
 	if (veryverbose && SSL_get_peer_certificate(ssl)) {
 		printf ("------------------------------------------------------------\n");
 		X509_NAME_print_ex_fp(stdout, X509_get_subject_name(SSL_get_peer_certificate(ssl)),
-		                      1, XN_FLAG_MULTILINE);
+							  1, XN_FLAG_MULTILINE);
 		printf("\n\n Cipher: %s", SSL_CIPHER_get_name(SSL_get_current_cipher(ssl)));
 		printf ("\n------------------------------------------------------------\n\n");
 	}
@@ -684,7 +684,7 @@ void start_client(char *remote_address, char* local_address, int port, int timet
 				case SSL_ERROR_NONE:
 					if (verbose) {
 						printf("wrote num %d with %d bytes on stream %u\n", count,
-						       (int) len, sinfo.snd_sid);
+							   (int) len, sinfo.snd_sid);
 					}
 					count++;
 					streamcount[sinfo.snd_sid] = streamcount[sinfo.snd_sid] + 1;
@@ -695,18 +695,18 @@ void start_client(char *remote_address, char* local_address, int port, int timet
 				case SSL_ERROR_WANT_READ:
 					/* continue with reading */
 					break;
-                case SSL_ERROR_SYSCALL:
-                    perror("Socket write error");
-                    exit(1);
-                    break;
-                case SSL_ERROR_SSL:
-					printf("SSL write error: ");
-                    printf("%s (%d)\n", ERR_error_string(ERR_get_error(), buf), SSL_get_error(ssl, len));
-                    exit(1);
+				case SSL_ERROR_SYSCALL:
+					perror("Socket write error");
+					exit(1);
 					break;
-                default:
-                    printf("Unexpected error while writing!\n");
-                    exit(1);
+				case SSL_ERROR_SSL:
+					printf("SSL write error: ");
+					printf("%s (%d)\n", ERR_error_string(ERR_get_error(), buf), SSL_get_error(ssl, len));
+					exit(1);
+					break;
+				default:
+					printf("Unexpected error while writing!\n");
+					exit(1);
 					break;
 			}
 
@@ -736,19 +736,19 @@ void start_client(char *remote_address, char* local_address, int port, int timet
 						case SSL_ERROR_ZERO_RETURN:
 							reading = 0;
 							break;
-                        case SSL_ERROR_SYSCALL:
-                            perror("Socket read error");
-                            exit(1);
-                            break;
-                        case SSL_ERROR_SSL:
-                            printf("SSL read error: ");
-                            printf("%s (%d)\n", ERR_error_string(ERR_get_error(), buf), SSL_get_error(ssl, len));
-                            exit(1);
-                            break;
-                        default:
-                            printf("Unexpected error while reading!\n");
-                            exit(1);
-                            break;
+						case SSL_ERROR_SYSCALL:
+							perror("Socket read error");
+							exit(1);
+							break;
+						case SSL_ERROR_SSL:
+							printf("SSL read error: ");
+							printf("%s (%d)\n", ERR_error_string(ERR_get_error(), buf), SSL_get_error(ssl, len));
+							exit(1);
+							break;
+						default:
+							printf("Unexpected error while reading!\n");
+							exit(1);
+							break;
 					}
 				}
 			}

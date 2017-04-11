@@ -260,19 +260,19 @@ int generate_cookie(SSL *ssl, unsigned char *cookie, unsigned int *cookie_len)
 	switch (peer.ss.ss_family) {
 		case AF_INET:
 			memcpy(buffer,
-			       &peer.s4.sin_port,
-			       sizeof(in_port_t));
+				   &peer.s4.sin_port,
+				   sizeof(in_port_t));
 			memcpy(buffer + sizeof(peer.s4.sin_port),
-			       &peer.s4.sin_addr,
-			       sizeof(struct in_addr));
+				   &peer.s4.sin_addr,
+				   sizeof(struct in_addr));
 			break;
 		case AF_INET6:
 			memcpy(buffer,
-			       &peer.s6.sin6_port,
-			       sizeof(in_port_t));
+				   &peer.s6.sin6_port,
+				   sizeof(in_port_t));
 			memcpy(buffer + sizeof(in_port_t),
-			       &peer.s6.sin6_addr,
-			       sizeof(struct in6_addr));
+				   &peer.s6.sin6_addr,
+				   sizeof(struct in6_addr));
 			break;
 		default:
 			OPENSSL_assert(0);
@@ -281,7 +281,7 @@ int generate_cookie(SSL *ssl, unsigned char *cookie, unsigned int *cookie_len)
 
 	/* Calculate HMAC of buffer using the secret */
 	HMAC(EVP_sha1(), (const void*) cookie_secret, COOKIE_SECRET_LENGTH,
-	     (const unsigned char*) buffer, length, result, &resultlength);
+		 (const unsigned char*) buffer, length, result, &resultlength);
 	OPENSSL_free(buffer);
 
 	memcpy(cookie, result, resultlength);
@@ -332,19 +332,19 @@ int verify_cookie(SSL *ssl, unsigned char *cookie, unsigned int cookie_len)
 	switch (peer.ss.ss_family) {
 		case AF_INET:
 			memcpy(buffer,
-			       &peer.s4.sin_port,
-			       sizeof(in_port_t));
+				   &peer.s4.sin_port,
+				   sizeof(in_port_t));
 			memcpy(buffer + sizeof(in_port_t),
-			       &peer.s4.sin_addr,
-			       sizeof(struct in_addr));
+				   &peer.s4.sin_addr,
+				   sizeof(struct in_addr));
 			break;
 		case AF_INET6:
 			memcpy(buffer,
-			       &peer.s6.sin6_port,
-			       sizeof(in_port_t));
+				   &peer.s6.sin6_port,
+				   sizeof(in_port_t));
 			memcpy(buffer + sizeof(in_port_t),
-			       &peer.s6.sin6_addr,
-			       sizeof(struct in6_addr));
+				   &peer.s6.sin6_addr,
+				   sizeof(struct in6_addr));
 			break;
 		default:
 			OPENSSL_assert(0);
@@ -353,7 +353,7 @@ int verify_cookie(SSL *ssl, unsigned char *cookie, unsigned int cookie_len)
 
 	/* Calculate HMAC of buffer using the secret */
 	HMAC(EVP_sha1(), (const void*) cookie_secret, COOKIE_SECRET_LENGTH,
-	     (const unsigned char*) buffer, length, result, &resultlength);
+		 (const unsigned char*) buffer, length, result, &resultlength);
 	OPENSSL_free(buffer);
 
 	if (cookie_len == resultlength && memcmp(result, cookie, resultlength) == 0)
@@ -452,14 +452,14 @@ void* connection_handle(void *info) {
 	if (verbose) {
 		if (pinfo->client_addr.ss.ss_family == AF_INET) {
 			printf ("\nThread %lx: accepted connection from %s:%d\n",
-			        (long) pthread_self(),
-			        inet_ntop(AF_INET, &pinfo->client_addr.s4.sin_addr, addrbuf, INET6_ADDRSTRLEN),
-			        ntohs(pinfo->client_addr.s4.sin_port));
+					(long) pthread_self(),
+					inet_ntop(AF_INET, &pinfo->client_addr.s4.sin_addr, addrbuf, INET6_ADDRSTRLEN),
+					ntohs(pinfo->client_addr.s4.sin_port));
 		} else {
 			printf ("\nThread %lx: accepted connection from %s:%d\n",
-			        (long) pthread_self(),
-			        inet_ntop(AF_INET6, &pinfo->client_addr.s6.sin6_addr, addrbuf, INET6_ADDRSTRLEN),
-			        ntohs(pinfo->client_addr.s6.sin6_port));
+					(long) pthread_self(),
+					inet_ntop(AF_INET6, &pinfo->client_addr.s6.sin6_addr, addrbuf, INET6_ADDRSTRLEN),
+					ntohs(pinfo->client_addr.s6.sin6_port));
 		}
 	}
 
@@ -546,10 +546,10 @@ void* connection_handle(void *info) {
 	if (verbose) {
 		if (pinfo->client_addr.ss.ss_family == AF_INET) {
 			printf("\nThread %lx: Statistics for %s:\n=========================================================\n",
-			       (long) pthread_self(), inet_ntop(AF_INET, &pinfo->client_addr.s4.sin_addr, addrbuf, INET6_ADDRSTRLEN));
+				   (long) pthread_self(), inet_ntop(AF_INET, &pinfo->client_addr.s4.sin_addr, addrbuf, INET6_ADDRSTRLEN));
 		} else {
 			printf("\nThread %lx: Statistics for %s:\n=========================================================\n",
-			       (long) pthread_self(), inet_ntop(AF_INET6, &pinfo->client_addr.s6.sin6_addr, addrbuf, INET6_ADDRSTRLEN));
+				   (long) pthread_self(), inet_ntop(AF_INET6, &pinfo->client_addr.s6.sin6_addr, addrbuf, INET6_ADDRSTRLEN));
 		}
 		printf("Thread %lx: Received messages:                %6d\n\n", (long) pthread_self(), rcvcount);
 	}
@@ -697,7 +697,7 @@ void start_server(int port, char *local_address) {
 #ifdef WIN32
 		if (CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE) connection_handle, info, 0, &tid) == NULL) {
 			exit(-1);
-		}	
+		}
 #else
 		if (pthread_create( &tid, NULL, connection_handle, info) != 0) {
 			perror("pthread_create");
@@ -829,17 +829,17 @@ void start_client(char *remote_address, char *local_address, int port, int timet
 	if (verbose) {
 		if (remote_addr.ss.ss_family == AF_INET) {
 			printf ("\nConnected to %s\n",
-			         inet_ntop(AF_INET, &remote_addr.s4.sin_addr, addrbuf, INET6_ADDRSTRLEN));
+					 inet_ntop(AF_INET, &remote_addr.s4.sin_addr, addrbuf, INET6_ADDRSTRLEN));
 		} else {
 			printf ("\nConnected to %s\n",
-			         inet_ntop(AF_INET6, &remote_addr.s6.sin6_addr, addrbuf, INET6_ADDRSTRLEN));
+					 inet_ntop(AF_INET6, &remote_addr.s6.sin6_addr, addrbuf, INET6_ADDRSTRLEN));
 		}
 	}
 
 	if (veryverbose && SSL_get_peer_certificate(ssl)) {
 		printf ("------------------------------------------------------------\n");
 		X509_NAME_print_ex_fp(stdout, X509_get_subject_name(SSL_get_peer_certificate(ssl)),
-		                      1, XN_FLAG_MULTILINE);
+							  1, XN_FLAG_MULTILINE);
 		printf("\n\n Cipher: %s", SSL_CIPHER_get_name(SSL_get_current_cipher(ssl)));
 		printf ("\n------------------------------------------------------------\n\n");
 	}
@@ -902,10 +902,10 @@ void start_client(char *remote_address, char *local_address, int port, int timet
 		}
 
 		if (activesocks > 0) {
-			
+
 			if (FD_ISSET(fd,&readsocks)) {
 				reading = 1;
-				
+
 				while (reading) {
 					len = SSL_read(ssl, buf, sizeof(buf));
 					switch (SSL_get_error(ssl, len)) {
@@ -940,7 +940,7 @@ void start_client(char *remote_address, char *local_address, int port, int timet
 
 	printf("\nStatistics:\n========================================\n");
 	printf("Sent messages:                    %6d\n", count);
-	
+
 #ifdef WIN32
 	closesocket(fd);
 #else
