@@ -554,7 +554,7 @@ void* connection_handle(void *info) {
 			case SSL_ERROR_SYSCALL:
 				printf("Socket write error: ");
 				if (!handle_socket_error()) goto cleanup;
-				reading = 0;
+				//reading = 0;
 				break;
 			case SSL_ERROR_SSL:
 				printf("SSL write error: ");
@@ -971,7 +971,7 @@ void start_client(char *remote_address, char *local_address, int port, int timet
 				case SSL_ERROR_SYSCALL:
 					printf("Socket write error: ");
 					if (!handle_socket_error()) exit(1);
-					reading = 0;
+					//reading = 0;
 					break;
 				case SSL_ERROR_SSL:
 					printf("SSL write error: ");
