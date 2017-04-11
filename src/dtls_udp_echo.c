@@ -274,7 +274,7 @@ int generate_cookie(SSL *ssl, unsigned char *cookie, unsigned int *cookie_len)
 	return 1;
 }
 
-int verify_cookie(SSL *ssl, unsigned char *cookie, unsigned int cookie_len)
+int verify_cookie(SSL *ssl, const unsigned char *cookie, unsigned int cookie_len)
 	{
 	unsigned char *buffer, result[EVP_MAX_MD_SIZE];
 	unsigned int length = 0, resultlength;
@@ -538,7 +538,6 @@ cleanup:
 #endif
 	free(info);
 	SSL_free(ssl);
-	ERR_remove_state(0);
 	if (verbose)
 		printf("Thread %lx: done, connection closed.\n", id_function());
 #if WIN32
@@ -598,7 +597,7 @@ void start_server(int port, char *local_address) {
 	THREAD_setup();
 	OpenSSL_add_ssl_algorithms();
 	SSL_load_error_strings();
-	ctx = SSL_CTX_new(DTLSv1_server_method());
+	ctx = SSL_CTX_new(DTLS_server_method());
 	/* We accept all ciphers, including NULL.
 	 * Not recommended beyond testing and debugging
 	 */
@@ -619,7 +618,7 @@ void start_server(int port, char *local_address) {
 
 	SSL_CTX_set_read_ahead(ctx, 1);
 	SSL_CTX_set_cookie_generate_cb(ctx, generate_cookie);
-	SSL_CTX_set_cookie_verify_cb(ctx, verify_cookie);
+	SSL_CTX_set_cookie_verify_cb(ctx, &verify_cookie);
 
 #ifdef WIN32
 	WSAStartup(MAKEWORD(2, 2), &wsaData);
@@ -662,7 +661,7 @@ void start_server(int port, char *local_address) {
 		SSL_set_bio(ssl, bio, bio);
 		SSL_set_options(ssl, SSL_OP_COOKIE_EXCHANGE);
 
-		while (DTLSv1_listen(ssl, &client_addr) <= 0);
+		while (DTLSv1_listen(ssl, (BIO_ADDR *) &client_addr) <= 0);
 
 		info = (struct pass_info*) malloc (sizeof(struct pass_info));
 		memcpy(&info->server_addr, &server_addr, sizeof(struct sockaddr_storage));
@@ -761,7 +760,7 @@ void start_client(char *remote_address, char *local_address, int port, int lengt
 
 	OpenSSL_add_ssl_algorithms();
 	SSL_load_error_strings();
-	ctx = SSL_CTX_new(DTLSv1_client_method());
+	ctx = SSL_CTX_new(DTLS_client_method());
 	SSL_CTX_set_cipher_list(ctx, "eNULL:!MD5");
 
 	if (!SSL_CTX_use_certificate_file(ctx, "certs/client-cert.pem", SSL_FILETYPE_PEM))

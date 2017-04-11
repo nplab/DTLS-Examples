@@ -161,7 +161,7 @@ void handle_notifications(BIO *bio, void *context, void *buf) {
 
 	case SCTP_SEND_FAILED:
 		ssf = &snp->sn_send_failed;
-		printf("NOTIFICATION: sendfailed: len=%hu err=%d\n", ssf->ssf_length, ssf->ssf_error);
+		printf("NOTIFICATION: sendfailed: len=%u err=%d\n", ssf->ssf_length, ssf->ssf_error);
 		break;
 
 	case SCTP_SHUTDOWN_EVENT:
@@ -370,7 +370,7 @@ void start_server(int port, char *local_address) {
 	THREAD_setup();
 	OpenSSL_add_ssl_algorithms();
 	SSL_load_error_strings();
-	ctx = SSL_CTX_new(DTLSv1_server_method());
+	ctx = SSL_CTX_new(DTLS_server_method());
 	SSL_CTX_set_cipher_list(ctx, "ALL:NULL:eNULL:aNULL");
 	pid = getpid();
 	if( !SSL_CTX_set_session_id_context(ctx, (void*)&pid, sizeof pid) )
@@ -579,7 +579,7 @@ void start_client(char *remote_address, char* local_address, int port, int lengt
 
 	OpenSSL_add_ssl_algorithms();
 	SSL_load_error_strings();
-	ctx = SSL_CTX_new(DTLSv1_client_method());
+	ctx = SSL_CTX_new(DTLS_client_method());
 	SSL_CTX_set_cipher_list(ctx, "eNULL:!MD5");
 
 	if (!SSL_CTX_use_certificate_file(ctx, "certs/client-cert.pem", SSL_FILETYPE_PEM))
