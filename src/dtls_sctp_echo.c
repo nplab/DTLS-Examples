@@ -114,6 +114,7 @@ struct pass_info {
 	SSL_CTX *ctx;
 };
 
+#if 0
 int dtls_verify_callback (int ok, X509_STORE_CTX *ctx) {
 	/* This function should ask the user
 	 * if he trusts the received certificate.
@@ -121,6 +122,27 @@ int dtls_verify_callback (int ok, X509_STORE_CTX *ctx) {
 	 */
 	fprintf(stderr, "%s - ok : %d\n", __func__, ok);
 	return 1;
+}
+#endif
+
+int verify_callback(int ok, X509_STORE_CTX *store)
+{
+	char data[256];
+
+	if (!ok) {
+		X509 *cert = X509_STORE_CTX_get_current_cert(store);
+		int  depth = X509_STORE_CTX_get_error_depth(store);
+		int  err = X509_STORE_CTX_get_error(store);
+
+		fprintf(stderr, "-Error with certificate at depth: %i\n", depth);
+		X509_NAME_oneline(X509_get_issuer_name(cert), data, 256);
+		fprintf(stderr, "  issuer   = %s\n", data);
+		X509_NAME_oneline(X509_get_subject_name(cert), data, 256);
+		fprintf(stderr, "  subject  = %s\n", data);
+		fprintf(stderr, "  err %i:%s\n", err, X509_verify_cert_error_string(err));
+	}
+
+	return ok;
 }
 
 void handle_notifications(BIO *bio, void *context, void *buf) {
@@ -420,7 +442,7 @@ void start_server(int port, char *local_address, int request_peer_certificate) {
 
 	/* Client has to authenticate */
 	if (request_peer_certificate) {
-		SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE, dtls_verify_callback);
+		SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE, verify_callback);
 	}
 
 	SSL_CTX_set_read_ahead(ctx,1);
@@ -627,7 +649,7 @@ void start_client(char *remote_address, char* local_address, int port, int lengt
 		printf("\nERROR: invalid private key!");
 
 
-	SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, dtls_verify_callback);
+	SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, verify_callback);
 	//SSL_CTX_set_verify_depth (ctx, 2);
 	SSL_CTX_set_read_ahead(ctx,1);
 
