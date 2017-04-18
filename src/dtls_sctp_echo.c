@@ -582,7 +582,7 @@ void start_client(char *remote_address, char* local_address, int port, int lengt
 	OpenSSL_add_ssl_algorithms();
 	SSL_load_error_strings();
 	ctx = SSL_CTX_new(DTLS_client_method());
-	SSL_CTX_set_cipher_list(ctx, "eNULL:!MD5");
+	//SSL_CTX_set_cipher_list(ctx, "eNULL:!MD5");
 
 	if (!SSL_CTX_use_certificate_chain_file(ctx, "fullchain.pem"))
 		printf("\nERROR: no certificate found!");
