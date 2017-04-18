@@ -1,5 +1,5 @@
 
-CFLAGS 		= -std=c99 -pedantic -Wall -g -Wextra -Wno-unused-parameter -Wno-unused-function
+CFLAGS 		= -std=c99 -pedantic -Wall -g -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overlength-strings
 INCLUDES 	= -I/usr/local/include
 LFLAGS 		= -L/usr/local/lib
 LIBS 		= -lssl -lcrypto -pthread -lm

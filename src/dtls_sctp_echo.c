@@ -50,6 +50,9 @@
 #include <openssl/bio.h>
 #include <openssl/err.h>
 
+#define NEAT_USETLS
+
+#include "tls-trust.c"
 
 #define BUFFER_SIZE (1<<16)
 
@@ -428,10 +431,15 @@ void start_server(int port, char *local_address, int request_peer_certificate) {
 	if (!SSL_CTX_check_private_key (ctx))
 		printf("\nERROR: invalid private key!");
 
+
 	/* Client has to authenticate */
 	if (request_peer_certificate) {
 		SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE, verify_callback);
+	} else {
+		SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, verify_callback);
 	}
+
+	tls_init_trust_list(ctx);
 
 	SSL_CTX_set_read_ahead(ctx,1);
 
@@ -637,9 +645,11 @@ void start_client(char *remote_address, char* local_address, int port, int lengt
 	if (!SSL_CTX_check_private_key (ctx))
 		printf("\nERROR: invalid private key!");
 
+	tls_init_trust_list(ctx);
+
 	// xxx dont verify peer until we know how to loader cacert
-	SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, verify_callback);
-	//SSL_CTX_set_verify_depth (ctx, 2);
+	SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, verify_callback);
+	SSL_CTX_set_verify_depth (ctx, 2);
 	SSL_CTX_set_read_ahead(ctx,1);
 
 	ssl = SSL_new(ctx);
