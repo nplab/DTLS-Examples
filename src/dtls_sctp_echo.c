@@ -318,7 +318,7 @@ cleanup:
 	pthread_exit( (void *) NULL );
 }
 
-void start_server(int port, char *local_address) {
+void start_server(int port, char *local_address, int request_peer_certificate) {
 	int fd, accfd, pid;
 	union {
 		struct sockaddr_in s4;
@@ -371,22 +371,24 @@ void start_server(int port, char *local_address) {
 	OpenSSL_add_ssl_algorithms();
 	SSL_load_error_strings();
 	ctx = SSL_CTX_new(DTLS_server_method());
-	SSL_CTX_set_cipher_list(ctx, "ALL:NULL:eNULL:aNULL");
+	//SSL_CTX_set_cipher_list(ctx, "ALL:NULL:eNULL:aNULL");
 	pid = getpid();
 	if( !SSL_CTX_set_session_id_context(ctx, (void*)&pid, sizeof pid) )
 		perror("SSL_CTX_set_session_id_context");
 
-	if (!SSL_CTX_use_certificate_file(ctx, "certs/server-cert.pem", SSL_FILETYPE_PEM))
+	if (!SSL_CTX_use_certificate_chain_file(ctx, "fullchain.pem"))
 		printf("\nERROR: no certificate found!");
 
-	if (!SSL_CTX_use_PrivateKey_file(ctx, "certs/server-key.pem", SSL_FILETYPE_PEM))
+	if (!SSL_CTX_use_PrivateKey_file(ctx, "privkey.pem", SSL_FILETYPE_PEM))
 		printf("\nERROR: no private key found!");
 
 	if (!SSL_CTX_check_private_key (ctx))
 		printf("\nERROR: invalid private key!");
 
 	/* Client has to authenticate */
-	SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE, dtls_verify_callback);
+	if (request_peer_certificate) {
+		SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE, dtls_verify_callback);
+	}
 
 	SSL_CTX_set_read_ahead(ctx,1);
 
@@ -582,10 +584,10 @@ void start_client(char *remote_address, char* local_address, int port, int lengt
 	ctx = SSL_CTX_new(DTLS_client_method());
 	SSL_CTX_set_cipher_list(ctx, "eNULL:!MD5");
 
-	if (!SSL_CTX_use_certificate_file(ctx, "certs/client-cert.pem", SSL_FILETYPE_PEM))
+	if (!SSL_CTX_use_certificate_chain_file(ctx, "fullchain.pem"))
 		printf("\nERROR: no certificate found!");
 
-	if (!SSL_CTX_use_PrivateKey_file(ctx, "certs/client-key.pem", SSL_FILETYPE_PEM))
+	if (!SSL_CTX_use_PrivateKey_file(ctx, "privkey.pem", SSL_FILETYPE_PEM))
 		printf("\nERROR: no private key found!");
 
 	if (!SSL_CTX_check_private_key (ctx))
@@ -724,15 +726,19 @@ int main(int argc, char **argv)
 	int messagenumber = 5;
 	char local_addr[INET6_ADDRSTRLEN+1];
 	char c;
+	int request_peer_certificate = 0;
 
 	memset(local_addr, 0, INET6_ADDRSTRLEN+1);
 
-	while ((c = getopt(argc, argv, "p:l:n:L:vV")) != -1)
+	while ((c = getopt(argc, argv, "p:l:L:n:rvV")) != -1)
 		switch(c) {
 			case 'l':
 				length = atoi(optarg);
 				if (length > BUFFER_SIZE)
 					length = BUFFER_SIZE;
+				break;
+			case 'L':
+				strncpy(local_addr, optarg, INET6_ADDRSTRLEN);
 				break;
 			case 'n':
 				messagenumber = atoi(optarg);
@@ -740,8 +746,8 @@ int main(int argc, char **argv)
 			case 'p':
 				port = atoi(optarg);
 				break;
-			case 'L':
-				strncpy(local_addr, optarg, INET6_ADDRSTRLEN);
+			case 'r':
+				request_peer_certificate = 1;
 				break;
 			case 'v':
 				verbose = 1;
@@ -756,7 +762,7 @@ int main(int argc, char **argv)
 		}
 
 	if (optind == argc)
-		start_server(port, local_addr);
+		start_server(port, local_addr, request_peer_certificate);
 	else
 		start_client(argv[optind], local_addr, port, length, messagenumber);
 
