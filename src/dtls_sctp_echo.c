@@ -119,6 +119,7 @@ int dtls_verify_callback (int ok, X509_STORE_CTX *ctx) {
 	 * if he trusts the received certificate.
 	 * Here we always trust.
 	 */
+	fprintf(stderr, "%s - ok : %d\n", __func__, ok);
 	return 1;
 }
 
@@ -203,6 +204,7 @@ void* connection_handle(void *info) {
 	BIO *bio;
 	struct bio_dgram_sctp_rcvinfo rinfo;
 	int reading = 0;
+	int retval;
 
 	pthread_detach(pthread_self());
 
@@ -215,9 +217,40 @@ void* connection_handle(void *info) {
 	if (veryverbose)
 		BIO_dgram_sctp_notification_cb(bio, &handle_notifications, (void*) ssl);
 
-	if (SSL_accept(ssl) <= 0) {
-		perror("SSL_accept");
-		printf("%s\n", ERR_error_string(ERR_get_error(), buf));
+	retval = SSL_accept(ssl);
+	if (retval <= 0) {
+		switch (SSL_get_error(ssl, retval)) {
+			case SSL_ERROR_ZERO_RETURN:
+				fprintf(stderr, "SSL_accept failed with SSL_ERROR_ZERO_RETURN\n");
+				break;
+			case SSL_ERROR_WANT_READ:
+				fprintf(stderr, "SSL_accept failed with SSL_ERROR_WANT_READ\n");
+				break;
+			case SSL_ERROR_WANT_WRITE:
+				fprintf(stderr, "SSL_accept failed with SSL_ERROR_WANT_WRITE\n");
+				break;
+			case SSL_ERROR_WANT_CONNECT:
+				fprintf(stderr, "SSL_accept failed with SSL_ERROR_WANT_CONNECT\n");
+				break;
+			case SSL_ERROR_WANT_ACCEPT:
+				fprintf(stderr, "SSL_accept failed with SSL_ERROR_WANT_ACCEPT\n");
+				break;
+			case SSL_ERROR_WANT_X509_LOOKUP:
+				fprintf(stderr, "SSL_accept failed with SSL_ERROR_WANT_X509_LOOKUP\n");
+				break;
+			case SSL_ERROR_SYSCALL:
+				fprintf(stderr, "SSL_accept failed with SSL_ERROR_SYSCALL\n");
+				break;
+			case SSL_ERROR_SSL:
+				fprintf(stderr, "SSL_accept failed with SSL_ERROR_SSL\n");
+				break;
+			default:
+				fprintf(stderr, "SSL_accept failed with unknown error\n");
+				break;
+		}
+
+
+		//printf("%s\n", ERR_error_string(ERR_get_error(), buf));
 		goto cleanup;
 	}
 
@@ -593,7 +626,9 @@ void start_client(char *remote_address, char* local_address, int port, int lengt
 	if (!SSL_CTX_check_private_key (ctx))
 		printf("\nERROR: invalid private key!");
 
-	SSL_CTX_set_verify_depth (ctx, 2);
+
+	SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, dtls_verify_callback);
+	//SSL_CTX_set_verify_depth (ctx, 2);
 	SSL_CTX_set_read_ahead(ctx,1);
 
 	ssl = SSL_new(ctx);
