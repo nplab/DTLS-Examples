@@ -114,19 +114,7 @@ struct pass_info {
 	SSL_CTX *ctx;
 };
 
-#if 0
-int dtls_verify_callback (int ok, X509_STORE_CTX *ctx) {
-	/* This function should ask the user
-	 * if he trusts the received certificate.
-	 * Here we always trust.
-	 */
-	fprintf(stderr, "%s - ok : %d\n", __func__, ok);
-	return 1;
-}
-#endif
-
-int verify_callback(int ok, X509_STORE_CTX *store)
-{
+int verify_callback(int ok, X509_STORE_CTX *store) {
 	char data[256];
 
 	if (!ok) {
@@ -648,8 +636,8 @@ void start_client(char *remote_address, char* local_address, int port, int lengt
 	if (!SSL_CTX_check_private_key (ctx))
 		printf("\nERROR: invalid private key!");
 
-
-	SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, verify_callback);
+	// xxx dont verify peer until we know how to loader cacert
+	SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, verify_callback);
 	//SSL_CTX_set_verify_depth (ctx, 2);
 	SSL_CTX_set_read_ahead(ctx,1);
 
