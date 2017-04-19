@@ -242,6 +242,7 @@ void* connection_handle(void *info) {
 	int reading = 0, rcvcount, i, activesocks;
 	fd_set readsocks;
 	struct timeval timeout;
+	int retval;
 
 	pthread_detach(pthread_self());
 
@@ -254,9 +255,37 @@ void* connection_handle(void *info) {
 	if (veryverbose)
 		BIO_dgram_sctp_notification_cb(bio, &handle_notifications, (void*) ssl);
 
-	if (SSL_accept(ssl) <= 0) {
-		perror("SSL_accept");
-		printf("%s\n", ERR_error_string(ERR_get_error(), buf));
+	retval = SSL_accept(ssl);
+	if (retval <= 0) {
+		switch (SSL_get_error(ssl, retval)) {
+			case SSL_ERROR_ZERO_RETURN:
+				fprintf(stderr, "SSL_accept failed with SSL_ERROR_ZERO_RETURN\n");
+				break;
+			case SSL_ERROR_WANT_READ:
+				fprintf(stderr, "SSL_accept failed with SSL_ERROR_WANT_READ\n");
+				break;
+			case SSL_ERROR_WANT_WRITE:
+				fprintf(stderr, "SSL_accept failed with SSL_ERROR_WANT_WRITE\n");
+				break;
+			case SSL_ERROR_WANT_CONNECT:
+				fprintf(stderr, "SSL_accept failed with SSL_ERROR_WANT_CONNECT\n");
+				break;
+			case SSL_ERROR_WANT_ACCEPT:
+				fprintf(stderr, "SSL_accept failed with SSL_ERROR_WANT_ACCEPT\n");
+				break;
+			case SSL_ERROR_WANT_X509_LOOKUP:
+				fprintf(stderr, "SSL_accept failed with SSL_ERROR_WANT_X509_LOOKUP\n");
+				break;
+			case SSL_ERROR_SYSCALL:
+				fprintf(stderr, "SSL_accept failed with SSL_ERROR_SYSCALL\n");
+				break;
+			case SSL_ERROR_SSL:
+				fprintf(stderr, "SSL_accept failed with SSL_ERROR_SSL\n");
+				break;
+			default:
+				fprintf(stderr, "SSL_accept failed with unknown error\n");
+				break;
+		}
 		goto cleanup;
 	}
 
@@ -532,6 +561,7 @@ void start_client(char *remote_address, char* local_address, int port, int timet
 	SSL *ssl;
 	BIO *bio;
 	const int on = 1;
+	int retval;
 #ifdef SCTP_EVENT
 	struct sctp_event event;
 	uint16_t event_types[] = {SCTP_ASSOC_CHANGE,
@@ -660,9 +690,37 @@ void start_client(char *remote_address, char* local_address, int port, int timet
 	if (veryverbose)
 		BIO_dgram_sctp_notification_cb(bio, &handle_notifications, (void*) ssl);
 
-	if (SSL_connect(ssl) < 0) {
-		perror("SSL_connect");
-		printf("%s\n", ERR_error_string(ERR_get_error(), buf));
+	retval = SSL_connect(ssl);
+	if (retval <= 0) {
+		switch (SSL_get_error(ssl, retval)) {
+			case SSL_ERROR_ZERO_RETURN:
+				fprintf(stderr, "SSL_connect failed with SSL_ERROR_ZERO_RETURN\n");
+				break;
+			case SSL_ERROR_WANT_READ:
+				fprintf(stderr, "SSL_connect failed with SSL_ERROR_WANT_READ\n");
+				break;
+			case SSL_ERROR_WANT_WRITE:
+				fprintf(stderr, "SSL_connect failed with SSL_ERROR_WANT_WRITE\n");
+				break;
+			case SSL_ERROR_WANT_CONNECT:
+				fprintf(stderr, "SSL_connect failed with SSL_ERROR_WANT_CONNECT\n");
+				break;
+			case SSL_ERROR_WANT_ACCEPT:
+				fprintf(stderr, "SSL_connect failed with SSL_ERROR_WANT_ACCEPT\n");
+				break;
+			case SSL_ERROR_WANT_X509_LOOKUP:
+				fprintf(stderr, "SSL_connect failed with SSL_ERROR_WANT_X509_LOOKUP\n");
+				break;
+			case SSL_ERROR_SYSCALL:
+				fprintf(stderr, "SSL_connect failed with SSL_ERROR_SYSCALL\n");
+				break;
+			case SSL_ERROR_SSL:
+				fprintf(stderr, "SSL_connect failed with SSL_ERROR_SSL\n");
+				break;
+			default:
+				fprintf(stderr, "SSL_connect failed with unknown error\n");
+				break;
+		}
 		exit(-1);
 	}
 
