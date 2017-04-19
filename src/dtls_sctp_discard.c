@@ -52,6 +52,8 @@
 #include <openssl/bio.h>
 #include <openssl/err.h>
 
+#include "tls-trust.c"
+
 
 #define BUFFER_SIZE (1<<16)
 #define MAX_STREAMS (256)
@@ -127,12 +129,33 @@ struct pass_info {
 	SSL_CTX *ctx;
 };
 
+#if 0
 int dtls_verify_callback (int ok, X509_STORE_CTX *ctx) {
 	/* This function should ask the user
 	 * if he trusts the received certificate.
 	 * Here we always trust.
 	 */
 	return 1;
+}
+#endif
+
+int verify_callback(int ok, X509_STORE_CTX *store) {
+	char data[256];
+
+	if (!ok) {
+		X509 *cert = X509_STORE_CTX_get_current_cert(store);
+		int  depth = X509_STORE_CTX_get_error_depth(store);
+		int  err = X509_STORE_CTX_get_error(store);
+
+		fprintf(stderr, "-Error with certificate at depth: %i\n", depth);
+		X509_NAME_oneline(X509_get_issuer_name(cert), data, 256);
+		fprintf(stderr, "  issuer   = %s\n", data);
+		X509_NAME_oneline(X509_get_subject_name(cert), data, 256);
+		fprintf(stderr, "  subject  = %s\n", data);
+		fprintf(stderr, "  err %i:%s\n", err, X509_verify_cert_error_string(err));
+	}
+
+	return ok;
 }
 
 void handle_notifications(BIO *bio, void *context, void *buf) {
@@ -335,7 +358,7 @@ cleanup:
 	pthread_exit( (void *) NULL );
 }
 
-void start_server(int port, char *local_address) {
+void start_server(int port, char *local_address, int request_peer_certificate) {
 	int fd, accfd, pid;
 	union {
 		struct sockaddr_in s4;
@@ -388,22 +411,28 @@ void start_server(int port, char *local_address) {
 	OpenSSL_add_ssl_algorithms();
 	SSL_load_error_strings();
 	ctx = SSL_CTX_new(DTLS_server_method());
-	SSL_CTX_set_cipher_list(ctx, "ALL:NULL:eNULL:aNULL");
+	//SSL_CTX_set_cipher_list(ctx, "ALL:NULL:eNULL:aNULL");
 	pid = getpid();
 	if( !SSL_CTX_set_session_id_context(ctx, (void*)&pid, sizeof pid) )
 		perror("SSL_CTX_set_session_id_context");
 
-	if (!SSL_CTX_use_certificate_file(ctx, "certs/server-cert.pem", SSL_FILETYPE_PEM))
+	if (!SSL_CTX_use_certificate_chain_file(ctx, "fullchain.pem"))
 		printf("\nERROR: no certificate found!");
 
-	if (!SSL_CTX_use_PrivateKey_file(ctx, "certs/server-key.pem", SSL_FILETYPE_PEM))
+	if (!SSL_CTX_use_PrivateKey_file(ctx, "privkey.pem", SSL_FILETYPE_PEM))
 		printf("\nERROR: no private key found!");
 
 	if (!SSL_CTX_check_private_key (ctx))
 		printf("\nERROR: invalid private key!");
 
 	/* Client has to authenticate */
-	SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE, dtls_verify_callback);
+	if (request_peer_certificate) {
+		SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE, verify_callback);
+	} else {
+		SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, verify_callback);
+	}
+
+	tls_init_trust_list(ctx);
 
 	SSL_CTX_set_read_ahead(ctx,1);
 
@@ -599,17 +628,21 @@ void start_client(char *remote_address, char* local_address, int port, int timet
 	OpenSSL_add_ssl_algorithms();
 	SSL_load_error_strings();
 	ctx = SSL_CTX_new(DTLS_client_method());
-	SSL_CTX_set_cipher_list(ctx, "eNULL:!MD5");
+	//SSL_CTX_set_cipher_list(ctx, "eNULL:!MD5");
 
-	if (!SSL_CTX_use_certificate_file(ctx, "certs/client-cert.pem", SSL_FILETYPE_PEM))
+	if (!SSL_CTX_use_certificate_chain_file(ctx, "fullchain.pem"))
 		printf("\nERROR: no certificate found!");
 
-	if (!SSL_CTX_use_PrivateKey_file(ctx, "certs/client-key.pem", SSL_FILETYPE_PEM))
+	if (!SSL_CTX_use_PrivateKey_file(ctx, "privkey.pem", SSL_FILETYPE_PEM))
 		printf("\nERROR: no private key found!");
 
 	if (!SSL_CTX_check_private_key (ctx))
 		printf("\nERROR: invalid private key!");
 
+	tls_init_trust_list(ctx);
+
+	// xxx dont verify peer until we know how to loader cacert
+	SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, verify_callback);
 	SSL_CTX_set_verify_depth (ctx, 2);
 	SSL_CTX_set_read_ahead(ctx,1);
 
@@ -774,10 +807,11 @@ int main(int argc, char **argv)
 	int timetosend = 10;
 	char local_addr[INET6_ADDRSTRLEN+1];
 	char c;
+	int request_peer_certificate = 0;
 
 	memset(local_addr, 0, INET6_ADDRSTRLEN+1);
 
-	while ((c = getopt(argc, argv, "p:t:l:s:L:uvV")) != -1)
+	while ((c = getopt(argc, argv, "p:t:l:s:L:urvV")) != -1)
 		switch(c) {
 			case 'l':
 				length = atoi(optarg);
@@ -801,6 +835,9 @@ int main(int argc, char **argv)
 			case 'u':
 				unordered = 1;
 				break;
+			case 'r':
+				request_peer_certificate = 1;
+				break;
 			case 'v':
 				verbose = 1;
 				break;
@@ -814,7 +851,7 @@ int main(int argc, char **argv)
 		}
 
 	if (optind == argc)
-		start_server(port, local_addr);
+		start_server(port, local_addr, request_peer_certificate);
 	else
 		start_client(argv[optind], local_addr, port, timetosend);
 
