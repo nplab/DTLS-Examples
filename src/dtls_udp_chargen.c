@@ -709,7 +709,7 @@ void start_server(int port, char *local_address) {
 	/* We accept all ciphers, including NULL.
 	 * Not recommended beyond testing and debugging
 	 */
-	SSL_CTX_set_cipher_list(ctx, "ALL:NULL:eNULL:aNULL");
+	//SSL_CTX_set_cipher_list(ctx, "ALL:NULL:eNULL:aNULL");
 	pid = getpid();
 	if (!SSL_CTX_set_session_id_context(ctx, (void*)&pid, sizeof pid)) {
 		perror("SSL_CTX_set_session_id_context");
@@ -878,7 +878,7 @@ void start_client(char *remote_address, char *local_address, int port, int timet
 	OpenSSL_add_ssl_algorithms();
 	SSL_load_error_strings();
 	ctx = SSL_CTX_new(DTLS_client_method());
-	SSL_CTX_set_cipher_list(ctx, "eNULL:!MD5");
+	//SSL_CTX_set_cipher_list(ctx, "eNULL:!MD5");
 
 	if (!SSL_CTX_use_certificate_file(ctx, "certs/client-cert.pem", SSL_FILETYPE_PEM)) {
 		printf("\n[%d] ERROR: no certificate found!", __LINE__);

@@ -4,10 +4,15 @@ INCLUDES 	= -I/usr/local/include
 LFLAGS 		= -L/usr/local/lib
 LIBS 		= -lssl -lcrypto -pthread -lm -ldl
 
-INCLUDES	= -I/home/weinrank/openssl/include
-LFLAGS		= -L/home/weinrank/openssl/lib
+#INCLUDES	= -I/home/weinrank/openssl/include
+#LFLAGS		= -L/home/weinrank/openssl/lib
 
-all: dtls_sctp_chargen dtls_sctp_discard dtls_sctp_echo dtls_udp_chargen dtls_udp_discard dtls_udp_echo
+#LFLAGS="-L/usr/local/opt/openssl@1.1/lib"
+#INCLUDES="-I/usr/local/opt/openssl@1.1/include"
+
+all		: sctp udp
+sctp	: dtls_sctp_chargen dtls_sctp_discard dtls_sctp_echo
+udp		: dtls_udp_chargen dtls_udp_discard dtls_udp_echo
 
 dtls_sctp_chargen: dtls_sctp_chargen.c
 	$(CC) $(CFLAGS) $(INCLUDES) -o dtls_sctp_chargen dtls_sctp_chargen.c $(LFLAGS) $(LIBS)
