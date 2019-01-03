@@ -418,21 +418,17 @@ void start_server(int port, char *local_address, int request_peer_certificate) {
 	if( !SSL_CTX_set_session_id_context(ctx, (void*)&pid, sizeof pid) )
 		perror("SSL_CTX_set_session_id_context");
 
-	if (!SSL_CTX_use_certificate_chain_file(ctx, "fullchain-server.pem"))
-		printf("\nERROR: \"fullchain-server.pem\" not found!");
+	if (!SSL_CTX_use_certificate_file(ctx, "certs/server-cert.pem", SSL_FILETYPE_PEM))
+		printf("\nERROR: no certificate found!");
 
-	if (!SSL_CTX_use_PrivateKey_file(ctx, "privkey-server.pem", SSL_FILETYPE_PEM))
-		printf("\nERROR: \"privkey-server.pem\" not found!");
+	if (!SSL_CTX_use_PrivateKey_file(ctx, "certs/server-key.pem", SSL_FILETYPE_PEM))
+		printf("\nERROR: no private key found!");
 
 	if (!SSL_CTX_check_private_key (ctx))
 		printf("\nERROR: invalid private key!");
 
-
 	/* Client has to authenticate */
 	if (request_peer_certificate) {
-		if(! SSL_CTX_load_verify_locations(ctx, "ca.pem", NULL)) {
-			printf("\nERROR: \"ca.pem\" not found!");
-		}
 		SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE, verify_callback);
 	} else {
 		SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, verify_callback);
@@ -535,7 +531,9 @@ void start_client(char *remote_address, char* local_address, int port, int lengt
 	SSL_CTX *ctx;
 	SSL *ssl;
 	BIO *bio;
+#ifdef SCTP_RCVINFO
 	const int on = 1;
+#endif
 	int retval;
 #ifdef SCTP_EVENT
 	struct sctp_event event;
@@ -633,18 +631,19 @@ void start_client(char *remote_address, char* local_address, int port, int lengt
 	ctx = SSL_CTX_new(DTLS_client_method());
 	//SSL_CTX_set_cipher_list(ctx, "eNULL:!MD5");
 
-	if (!SSL_CTX_use_certificate_chain_file(ctx, "fullchain-client.pem"))
-		printf("\nERROR: \"fullchain-client.pem\" not found!");
+	if (!SSL_CTX_use_certificate_file(ctx, "certs/client-cert.pem", SSL_FILETYPE_PEM))
+		printf("\nERROR: no certificate found!");
 
-	if (!SSL_CTX_use_PrivateKey_file(ctx, "privkey-client.pem", SSL_FILETYPE_PEM))
-		printf("\nERROR: \"privkey-client.pem\" not found!");
+	if (!SSL_CTX_use_PrivateKey_file(ctx, "certs/client-key.pem", SSL_FILETYPE_PEM))
+		printf("\nERROR: no private key found!");
 
 	if (!SSL_CTX_check_private_key (ctx))
 		printf("\nERROR: invalid private key!");
 
-	if(! SSL_CTX_load_verify_locations(ctx, "ca.pem", NULL)) {
-		printf("\nERROR: \"ca.pem\" not found!");
-	}
+	SSL_CTX_set_verify_depth (ctx, 2);
+	SSL_CTX_set_read_ahead(ctx,1);
+
+	ssl = SSL_new(ctx);
 
 	// xxx dont verify peer until we know how to loader cacert
 	SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, verify_callback);

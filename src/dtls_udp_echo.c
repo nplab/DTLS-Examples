@@ -37,6 +37,7 @@
 #else
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/time.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <stdio.h>
@@ -601,7 +602,7 @@ void start_server(int port, char *local_address) {
 	/* We accept all ciphers, including NULL.
 	 * Not recommended beyond testing and debugging
 	 */
-	SSL_CTX_set_cipher_list(ctx, "ALL:NULL:eNULL:aNULL");
+	//SSL_CTX_set_cipher_list(ctx, "ALL:NULL:eNULL:aNULL");
 	SSL_CTX_set_session_cache_mode(ctx, SSL_SESS_CACHE_OFF);
 
 	if (!SSL_CTX_use_certificate_file(ctx, "certs/server-cert.pem", SSL_FILETYPE_PEM))
@@ -761,7 +762,7 @@ void start_client(char *remote_address, char *local_address, int port, int lengt
 	OpenSSL_add_ssl_algorithms();
 	SSL_load_error_strings();
 	ctx = SSL_CTX_new(DTLS_client_method());
-	SSL_CTX_set_cipher_list(ctx, "eNULL:!MD5");
+	//SSL_CTX_set_cipher_list(ctx, "eNULL:!MD5");
 
 	if (!SSL_CTX_use_certificate_file(ctx, "certs/client-cert.pem", SSL_FILETYPE_PEM))
 		printf("\nERROR: no certificate found!");

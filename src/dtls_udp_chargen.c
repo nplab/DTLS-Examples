@@ -36,6 +36,7 @@
 #else
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/select.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <stdio.h>
@@ -708,19 +709,24 @@ void start_server(int port, char *local_address) {
 	/* We accept all ciphers, including NULL.
 	 * Not recommended beyond testing and debugging
 	 */
-	SSL_CTX_set_cipher_list(ctx, "ALL:NULL:eNULL:aNULL");
+	//SSL_CTX_set_cipher_list(ctx, "ALL:NULL:eNULL:aNULL");
 	pid = getpid();
-	if( !SSL_CTX_set_session_id_context(ctx, (void*)&pid, sizeof pid) )
+	if (!SSL_CTX_set_session_id_context(ctx, (void*)&pid, sizeof pid)) {
 		perror("SSL_CTX_set_session_id_context");
+		exit(EXIT_FAILURE);
+	}
 
-	if (!SSL_CTX_use_certificate_file(ctx, "certs/server-cert.pem", SSL_FILETYPE_PEM))
-		printf("\nERROR: no certificate found!");
+	if (!SSL_CTX_use_certificate_file(ctx, "certs/server-cert.pem", SSL_FILETYPE_PEM)) {
+		printf("\n[%d] ERROR: no certificate found!", __LINE__);
+		ERR_print_errors_fp(stderr);
+		exit(EXIT_FAILURE);
+	}
 
 	if (!SSL_CTX_use_PrivateKey_file(ctx, "certs/server-key.pem", SSL_FILETYPE_PEM))
-		printf("\nERROR: no private key found!");
+		printf("\n[%d] ERROR: no private key found!", __LINE__);
 
 	if (!SSL_CTX_check_private_key (ctx))
-		printf("\nERROR: invalid private key!");
+		printf("\n[%d] ERROR: invalid private key!", __LINE__);
 
 	/* Client has to authenticate */
 	SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE, dtls_verify_callback);
@@ -842,7 +848,7 @@ void start_client(char *remote_address, char *local_address, int port, int timet
 	fd = socket(remote_addr.ss.ss_family, SOCK_DGRAM, 0);
 	if (fd < 0) {
 		perror("socket");
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 
 	if (strlen(local_address) > 0) {
@@ -872,16 +878,22 @@ void start_client(char *remote_address, char *local_address, int port, int timet
 	OpenSSL_add_ssl_algorithms();
 	SSL_load_error_strings();
 	ctx = SSL_CTX_new(DTLS_client_method());
-	SSL_CTX_set_cipher_list(ctx, "eNULL:!MD5");
+	//SSL_CTX_set_cipher_list(ctx, "eNULL:!MD5");
 
-	if (!SSL_CTX_use_certificate_file(ctx, "certs/client-cert.pem", SSL_FILETYPE_PEM))
-		printf("\nERROR: no certificate found!");
+	if (!SSL_CTX_use_certificate_file(ctx, "certs/client-cert.pem", SSL_FILETYPE_PEM)) {
+		printf("\n[%d] ERROR: no certificate found!", __LINE__);
+		exit(EXIT_FAILURE);
+	}
 
-	if (!SSL_CTX_use_PrivateKey_file(ctx, "certs/client-key.pem", SSL_FILETYPE_PEM))
-		printf("\nERROR: no private key found!");
+	if (!SSL_CTX_use_PrivateKey_file(ctx, "certs/client-key.pem", SSL_FILETYPE_PEM)) {
+		printf("\n[%d] ERROR: no private key found!", __LINE__);
+		exit(EXIT_FAILURE);
+	}
 
-	if (!SSL_CTX_check_private_key (ctx))
-		printf("\nERROR: invalid private key!");
+	if (!SSL_CTX_check_private_key (ctx)) {
+		printf("\n[%d] ERROR: invalid private key!", __LINE__);
+		exit(EXIT_FAILURE);
+	}
 
 	SSL_CTX_set_verify_depth (ctx, 2);
 	SSL_CTX_set_read_ahead(ctx, 1);
@@ -901,6 +913,7 @@ void start_client(char *remote_address, char *local_address, int port, int timet
 
 	if (SSL_connect(ssl) < 0) {
 		perror("SSL_connect");
+		ERR_print_errors_fp(stderr);
 		printf("%s\n", ERR_error_string(ERR_get_error(), buf));
 		exit(-1);
 	}

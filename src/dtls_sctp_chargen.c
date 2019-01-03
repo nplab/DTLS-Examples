@@ -320,7 +320,7 @@ void* connection_handle(void *info) {
 		memset(&sinfo, 0, sizeof(struct bio_dgram_sctp_sndinfo));
 		memset(&rinfo, 0, sizeof(struct bio_dgram_sctp_rcvinfo));
 
-		stream = random() % streams;
+		stream = rand() % streams;
 		sinfo.snd_sid = stream;
 
 		BIO_ctrl(bio, BIO_CTRL_DGRAM_SCTP_SET_SNDINFO, sizeof(struct bio_dgram_sctp_sndinfo), &sinfo);
@@ -529,7 +529,7 @@ void start_server(int port, char *local_address) {
 	OpenSSL_add_ssl_algorithms();
 	SSL_load_error_strings();
 	ctx = SSL_CTX_new(DTLS_server_method());
-	SSL_CTX_set_cipher_list(ctx, "ALL:NULL:eNULL:aNULL");
+	//SSL_CTX_set_cipher_list(ctx, "ALL:NULL:eNULL:aNULL");
 	pid = getpid();
 	if( !SSL_CTX_set_session_id_context(ctx, (void*)&pid, sizeof pid) )
 		perror("SSL_CTX_set_session_id_context");
@@ -643,7 +643,9 @@ void start_client(char *remote_address, char* local_address, int port, int timet
 	SSL_CTX *ctx;
 	SSL *ssl;
 	BIO *bio;
+#ifdef SCTP_RCVINFO
 	const int on = 1;
+#endif
 #ifdef SCTP_EVENT
 	struct sctp_event event;
 	uint16_t event_types[] = {SCTP_ASSOC_CHANGE,
@@ -745,7 +747,7 @@ void start_client(char *remote_address, char* local_address, int port, int timet
 	OpenSSL_add_ssl_algorithms();
 	SSL_load_error_strings();
 	ctx = SSL_CTX_new(DTLS_client_method());
-	SSL_CTX_set_cipher_list(ctx, "eNULL:!MD5");
+	//SSL_CTX_set_cipher_list(ctx, "eNULL:!MD5");
 
 	if (!SSL_CTX_use_certificate_file(ctx, "certs/client-cert.pem", SSL_FILETYPE_PEM))
 		printf("\nERROR: no certificate found!");
@@ -810,7 +812,7 @@ void start_client(char *remote_address, char* local_address, int port, int timet
 			memset(&sinfo, 0, sizeof(struct bio_dgram_sctp_sndinfo));
 			memset(&rinfo, 0, sizeof(struct bio_dgram_sctp_rcvinfo));
 
-			stream = random() % streams;
+			stream = rand() % streams;
 			sinfo.snd_sid = stream;
 
 			BIO_ctrl(bio, BIO_CTRL_DGRAM_SCTP_SET_SNDINFO, sizeof(struct bio_dgram_sctp_sndinfo), &sinfo);
