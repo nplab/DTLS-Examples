@@ -445,10 +445,10 @@ void start_server(int port, char *local_address, int request_peer_certificate) {
 	if( !SSL_CTX_set_session_id_context(ctx, (void*)&pid, sizeof pid) )
 		perror("SSL_CTX_set_session_id_context");
 
-	if (!SSL_CTX_use_certificate_chain_file(ctx, "fullchain.pem"))
+	if (!SSL_CTX_use_certificate_file(ctx, "certs/server-cert.pem", SSL_FILETYPE_PEM))
 		printf("\nERROR: no certificate found!");
 
-	if (!SSL_CTX_use_PrivateKey_file(ctx, "privkey.pem", SSL_FILETYPE_PEM))
+	if (!SSL_CTX_use_PrivateKey_file(ctx, "certs/server-key.pem", SSL_FILETYPE_PEM))
 		printf("\nERROR: no private key found!");
 
 	if (!SSL_CTX_check_private_key (ctx))
@@ -662,10 +662,10 @@ void start_client(char *remote_address, char* local_address, int port, int timet
 	ctx = SSL_CTX_new(DTLS_client_method());
 	//SSL_CTX_set_cipher_list(ctx, "eNULL:!MD5");
 
-	if (!SSL_CTX_use_certificate_chain_file(ctx, "fullchain.pem"))
+	if (!SSL_CTX_use_certificate_file(ctx, "certs/client-cert.pem", SSL_FILETYPE_PEM))
 		printf("\nERROR: no certificate found!");
 
-	if (!SSL_CTX_use_PrivateKey_file(ctx, "privkey.pem", SSL_FILETYPE_PEM))
+	if (!SSL_CTX_use_PrivateKey_file(ctx, "certs/client-key.pem", SSL_FILETYPE_PEM))
 		printf("\nERROR: no private key found!");
 
 	if (!SSL_CTX_check_private_key (ctx))
