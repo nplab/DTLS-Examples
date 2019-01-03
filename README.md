@@ -15,7 +15,10 @@ This sample includes a multi-threaded discard server and client sending messages
 ## OpenSSL with SCTP support
 In order to run **SCTP** applications via DTLS, OpenSSL has to be built with SCTP support.
 
-Grab the recent OpenSSL version, this example has been tested with OpenSSL 1.1.1a (2019/01).  
+FreeBSD, tested with 12.0 Release, already has builtin SCTP support for OpenSSL.
+
+Otherwise grab the recent OpenSSL version.  
+This example has been tested with OpenSSL 1.1.1a (2019/01).  
 Configure OpenSSL to include SCTP support and (optionally) a custom install prefix.  
 Build and install OpenSSL afterwards.
 ```
@@ -34,6 +37,14 @@ brew install openssl@1.1
 ```
 
 ## Build the examples
+Call `make` in the `src` directory to build the example programs.
+It is also possible to only build SCTP or UDP examples instead of both.
+
+```
+make
+make sctp  # only SCTP examples
+make udp  # only UDP examples
+```
 
 ## OpenSSL Certificates
 The following commands create signed certificates for client and server of the samples above.
