@@ -461,8 +461,6 @@ void start_server(int port, char *local_address, int request_peer_certificate) {
 		SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, verify_callback);
 	}
 
-	tls_init_trust_list(ctx);
-
 	SSL_CTX_set_read_ahead(ctx,1);
 
 	fd = socket(server_addr.ss.ss_family, SOCK_STREAM, IPPROTO_SCTP);
@@ -671,10 +669,6 @@ void start_client(char *remote_address, char* local_address, int port, int timet
 	if (!SSL_CTX_check_private_key (ctx))
 		printf("\nERROR: invalid private key!");
 
-	tls_init_trust_list(ctx);
-
-	// xxx dont verify peer until we know how to loader cacert
-	SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, verify_callback);
 	SSL_CTX_set_verify_depth (ctx, 2);
 	SSL_CTX_set_read_ahead(ctx,1);
 
