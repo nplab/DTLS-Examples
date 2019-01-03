@@ -2,7 +2,10 @@
 CFLAGS 		= -std=c99 -pedantic -Wall -g -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overlength-strings
 INCLUDES 	= -I/usr/local/include
 LFLAGS 		= -L/usr/local/lib
-LIBS 		= -lssl -lcrypto -pthread -lm
+LIBS 		= -lssl -lcrypto -pthread -lm -ldl
+
+INCLUDES	= -I/home/weinrank/openssl/include
+LFLAGS		= -L/home/weinrank/openssl/lib
 
 all: dtls_sctp_chargen dtls_sctp_discard dtls_sctp_echo dtls_udp_chargen dtls_udp_discard dtls_udp_echo
 

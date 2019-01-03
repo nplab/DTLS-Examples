@@ -320,7 +320,7 @@ void* connection_handle(void *info) {
 		memset(&sinfo, 0, sizeof(struct bio_dgram_sctp_sndinfo));
 		memset(&rinfo, 0, sizeof(struct bio_dgram_sctp_rcvinfo));
 
-		stream = random() % streams;
+		stream = rand() % streams;
 		sinfo.snd_sid = stream;
 
 		BIO_ctrl(bio, BIO_CTRL_DGRAM_SCTP_SET_SNDINFO, sizeof(struct bio_dgram_sctp_sndinfo), &sinfo);
@@ -643,7 +643,9 @@ void start_client(char *remote_address, char* local_address, int port, int timet
 	SSL_CTX *ctx;
 	SSL *ssl;
 	BIO *bio;
+#ifdef SCTP_RCVINFO
 	const int on = 1;
+#endif
 #ifdef SCTP_EVENT
 	struct sctp_event event;
 	uint16_t event_types[] = {SCTP_ASSOC_CHANGE,
@@ -810,7 +812,7 @@ void start_client(char *remote_address, char* local_address, int port, int timet
 			memset(&sinfo, 0, sizeof(struct bio_dgram_sctp_sndinfo));
 			memset(&rinfo, 0, sizeof(struct bio_dgram_sctp_rcvinfo));
 
-			stream = random() % streams;
+			stream = rand() % streams;
 			sinfo.snd_sid = stream;
 
 			BIO_ctrl(bio, BIO_CTRL_DGRAM_SCTP_SET_SNDINFO, sizeof(struct bio_dgram_sctp_sndinfo), &sinfo);

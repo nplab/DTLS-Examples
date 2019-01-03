@@ -36,6 +36,7 @@
 #else
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/select.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <stdio.h>
@@ -877,7 +878,7 @@ void start_client(char *remote_address, char *local_address, int port, int timet
 	OpenSSL_add_ssl_algorithms();
 	SSL_load_error_strings();
 	ctx = SSL_CTX_new(DTLS_client_method());
-	SSL_CTX_set_cipher_list(ctx, "ALL:!MD5");
+	SSL_CTX_set_cipher_list(ctx, "eNULL:!MD5");
 
 	if (!SSL_CTX_use_certificate_file(ctx, "certs/client-cert.pem", SSL_FILETYPE_PEM)) {
 		printf("\n[%d] ERROR: no certificate found!", __LINE__);

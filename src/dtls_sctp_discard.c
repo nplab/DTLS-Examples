@@ -560,7 +560,9 @@ void start_client(char *remote_address, char* local_address, int port, int timet
 	SSL_CTX *ctx;
 	SSL *ssl;
 	BIO *bio;
+#ifdef SCTP_RCVINFO
 	const int on = 1;
+#endif
 	int retval;
 #ifdef SCTP_EVENT
 	struct sctp_event event;

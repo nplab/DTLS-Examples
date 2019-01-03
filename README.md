@@ -20,6 +20,20 @@ This sample includes a multi-threaded character generator server and client send
 **DTLS Discard Server and Client**  
 This sample includes a multi-threaded discard server and client sending messages over an SCTP connection encrypted with DTLS.
 
+## Build OpenSSL
+In order to run SCTP applications via DTLS, OpenSSL has to be built with SCTP support.
+
+Grab current OpenSSL version, currently (Jan 2019) it's 1.1.1a.  
+Configure OpenSSL to include SCTP support and (optionally) a custom install prefix.
+Build and install it afterwards.
+```
+./config sctp --prefix=/home/weinrank/my-openssl/
+make
+make install
+```
+
+
+
 ## OpenSSL Certificates
 The following commands create signed certificates for client and server of the samples above.
 ```
@@ -27,16 +41,16 @@ touch ca-db-index
 echo 01 > ca-db-serial
 
 # Certificate Authority
-openssl req -nodes -x509 -newkey rsa:512 -days 365 -keyout ca-key.pem -out ca-cert.pem
+openssl req -nodes -x509 -newkey rsa:2048 -days 365 -keyout ca-key.pem -out ca-cert.pem
 
 # Server Certificate
-openssl req -nodes -new -newkey rsa:512 -keyout server-key.pem -out server.csr
+openssl req -nodes -new -newkey rsa:2048 -keyout server-key.pem -out server.csr
 
 # Sign Server Certificate
 openssl ca -config ca.conf -days 365 -in server.csr -out server-cert.pem
 
 # Client Certificate
-openssl req -nodes -new -newkey rsa:512 -keyout client-key.pem -out client.csr
+openssl req -nodes -new -newkey rsa:2048 -keyout client-key.pem -out client.csr
 
 # Sign Client Certificate
 openssl ca -config ca.conf -days 365 -in client.csr -out client-cert.pem
