@@ -2,6 +2,7 @@
 OPENSSL_BIN="openssl"
 #OPENSSL_BIN="/usr/local/opt/openssl@1.1/bin/openssl"
 
+# Get script directory
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 touch ca-db-index
