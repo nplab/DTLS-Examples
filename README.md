@@ -17,10 +17,10 @@ This sample includes a multi-threaded discard server and client sending messages
 Since FreeBSD 12.0, the built-in OpenSSL version is sufficient to run the SCTP and UDP examples.
 
 ### Ubuntu
-In order to run the example applications via DTLS, OpenSSL has to be built with SCTP support.
+In order to run the example applications, OpenSSL has to be built with SCTP support.
 
 Download the recent OpenSSL version.
-This example has been tested with OpenSSL 1.1.1a and Ubuntu 18.10.
+This example has been tested with OpenSSL 1.1.1a and Ubuntu 18.10.  
 Configure OpenSSL to include SCTP support and (optionally) set a custom install prefix.  
 Build and install OpenSSL afterwards.
 
@@ -45,9 +45,9 @@ $ brew install openssl@1.1
 A SCTP enabled OpenSSL version has to be compiled from source, follow the tutorial in the ubuntu section.
 Since macOS does not support SCTP out of the box, it is necessary to use the SCTP NKE.
 
-## Build the examples
+## Build the Examples
 Before calling `make` in the `src` directory, it may be necessary to specify custom *library* and *include* paths.
-This is either done by modifying the *Makefile* or by command line.
+This is either done by modifying the *Makefile* or by providing the path as a command line argument.
 It is also possible to only build SCTP or UDP examples instead of both.
 
 ```
