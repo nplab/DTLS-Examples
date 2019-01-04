@@ -645,13 +645,6 @@ void start_client(char *remote_address, char* local_address, int port, int lengt
 
 	ssl = SSL_new(ctx);
 
-	// xxx dont verify peer until we know how to loader cacert
-	SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, verify_callback);
-	SSL_CTX_set_verify_depth (ctx, 2);
-	SSL_CTX_set_read_ahead(ctx,1);
-
-	ssl = SSL_new(ctx);
-
 	/* Create DTLS/SCTP BIO and connect */
 	bio = BIO_new_dgram_sctp(fd, BIO_CLOSE);
 	if (remote_addr.ss.ss_family == AF_INET) {
