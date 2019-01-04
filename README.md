@@ -1,5 +1,5 @@
 # DTLS Examples for OpenSSL
-The examples and tutorial require at least OpenSSL 1.1.0.
+The examples and tutorial are tested with OpenSSL 1.1.1.
 
 ## SCTP/UDP Examples
 **DTLS Echo Server and Client**  
@@ -12,38 +12,48 @@ Statistics how many messages have been sent and received and how many got lost a
 **DTLS Discard Server and Client**  
 This sample includes a multi-threaded discard server and client sending messages over an SCTP/UDP connection encrypted with DTLS.
 
-## OpenSSL with SCTP support
-In order to run **SCTP** applications via DTLS, OpenSSL has to be built with SCTP support.
+## OS Requirements
+### FreeBSD
+Since FreeBSD 12.0, the built-in OpenSSL version is sufficient to run the SCTP and UDP examples.
 
-FreeBSD, tested with 12.0 Release, already has builtin SCTP support for OpenSSL.
+### Ubuntu
+In order to run the example applications, OpenSSL has to be built with SCTP support.
 
-Otherwise grab the recent OpenSSL version.  
-This example has been tested with OpenSSL 1.1.1a (2019/01).  
-Configure OpenSSL to include SCTP support and (optionally) a custom install prefix.  
+Download the recent OpenSSL version.
+This example has been tested with OpenSSL 1.1.1a and Ubuntu 18.10.  
+Configure OpenSSL to include SCTP support and (optionally) set a custom install prefix.  
 Build and install OpenSSL afterwards.
+
 ```
-./config sctp --prefix=/home/weinrank/my-openssl/
-make
-make install
+$ ./config sctp --prefix=/home/weinrank/my-openssl/
+$ make
+$ make install
 ```
 
-## OpenSSL without SCTP support
-If you are not interested in the SCTP examples, you can run the UDP examples on many recent operating systems without additional packages.
-FreeBSD 12 and Ubuntu 18.04 already have compatible OpenSSL Versions.
-
-For macOS, the required libraries can be installed via brew.
+In addition to a loaded SCTP module, Linux requires the SCTP AUTH support to be enabled.
 ```
-brew install openssl@1.1
+$ modprobe sctp
+$ sysctl -w net.sctp.auth_enable=1
 ```
 
-## Build the examples
-Call `make` in the `src` directory to build the example programs.
+### macOS
+If you only want to run the UDP examples, prebuilt OpenSSL binaries can be installed via brew.
+```
+$ brew install openssl@1.1
+```
+
+A SCTP enabled OpenSSL version has to be compiled from source, follow the tutorial in the ubuntu section.
+Since macOS does not support SCTP out of the box, it is necessary to use the SCTP NKE.
+
+## Build the Examples
+Before calling `make` in the `src` directory, it may be necessary to specify custom *library* and *include* paths.
+This is either done by modifying the *Makefile* or by providing the path as a command line argument.
 It is also possible to only build SCTP or UDP examples instead of both.
 
 ```
-make
-make sctp  # only SCTP examples
-make udp  # only UDP examples
+$ make
+$ make sctp  # only SCTP examples
+$ make udp  # only UDP examples
 ```
 
 ## OpenSSL Certificates
