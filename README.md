@@ -2,7 +2,7 @@
 This repository contains examples for DTLS via SCTP and UDP.
 Each application in `src` can be used as client or server.
 
-Our example are developed against the OpenSSL 1.1.x API.
+Our examples are developed against the OpenSSL 1.1.x API.
 
 ## SCTP/UDP Examples
 **DTLS Echo Server and Client**  
@@ -108,7 +108,6 @@ In order to run the example programs, the required server and client certificate
 * client-key.pem
 * server-cert.pem
 * server-key.pem
-
 
 The following commands create signed certificates for client and server of the samples above.
 ```
