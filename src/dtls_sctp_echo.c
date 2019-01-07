@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2009 - 2012 Robin Seggelmann, seggelmann@fh-muenster.de,
  *                           Michael Tuexen, tuexen@fh-muenster.de
+ * 
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

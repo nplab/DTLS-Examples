@@ -70,9 +70,9 @@ char Usage[] =
 "Usage: dtls_udp_chargen [options] [address]\n"
 "Options:\n"
 "        -l      message length (Default: 100 Bytes)\n"
+"        -L      local address\n"
 "        -p      port (Default: 23232)\n"
 "        -t      time to send (Default: 10 sec)\n"
-"        -L      local address\n"
 "        -v      verbose\n"
 "        -V      very verbose\n";
 

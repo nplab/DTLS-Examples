@@ -51,8 +51,6 @@
 #include <openssl/ssl.h>
 #include <openssl/bio.h>
 #include <openssl/err.h>
-#define NEAT_USETLS
-#include "tls-trust.c"
 
 
 #define BUFFER_SIZE (1<<16)
