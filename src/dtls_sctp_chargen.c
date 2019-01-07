@@ -289,6 +289,10 @@ void* connection_handle(void *info) {
 
 	/* Create DTLS/SCTP BIO */
 	bio = BIO_new_dgram_sctp(pinfo->fd, BIO_NOCLOSE);
+	if (!bio) {
+		ERR_print_errors_fp(stderr);
+		exit(EXIT_FAILURE);
+	}
 
 	SSL_set_bio(ssl, bio, bio);
 	if (veryverbose)
@@ -498,6 +502,7 @@ void start_server(int port, char *local_address) {
 #else
 	struct sctp_event_subscribe event;
 #endif
+	BIO *bio;
 
 	memset((void *) &server_addr, 0, sizeof(struct sockaddr_storage));
 	if (strlen(local_address) == 0) {
@@ -598,7 +603,11 @@ void start_server(int port, char *local_address) {
 	 * following connections, e.g. SCTP-AUTH.
 	 * Will not be used.
 	 */
-	BIO_new_dgram_sctp(fd, BIO_NOCLOSE);
+	bio = BIO_new_dgram_sctp(fd, BIO_NOCLOSE);
+	if (!bio) {
+		ERR_print_errors_fp(stderr);
+		exit(EXIT_FAILURE);
+	}
 
 	while (1) {
 		memset(&client_addr, 0, sizeof(client_addr));
@@ -765,6 +774,11 @@ void start_client(char *remote_address, char* local_address, int port, int timet
 
 	/* Create DTLS/SCTP BIO and connect */
 	bio = BIO_new_dgram_sctp(fd, BIO_CLOSE);
+	if (!bio) {
+		ERR_print_errors_fp(stderr);
+		exit(EXIT_FAILURE);
+	}
+
 	if (remote_addr.ss.ss_family == AF_INET) {
 		connect(fd, (struct sockaddr *) &remote_addr, sizeof(struct sockaddr_in));
 	} else {
