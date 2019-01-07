@@ -801,7 +801,7 @@ void start_server(int port, char *local_address) {
 }
 
 void start_client(char *remote_address, char *local_address, int port, int timetosend) {
-	int fd, rcvnum, count = 0, rcvcount;
+	int fd, rcvnum, count = 0, rcvcount, retval;
 	union {
 		struct sockaddr_storage ss;
 		struct sockaddr_in s4;
@@ -911,11 +911,38 @@ void start_client(char *remote_address, char *local_address, int port, int timet
 
 	SSL_set_bio(ssl, bio, bio);
 
-	if (SSL_connect(ssl) < 0) {
-		perror("SSL_connect");
-		ERR_print_errors_fp(stderr);
-		printf("%s\n", ERR_error_string(ERR_get_error(), buf));
-		exit(-1);
+	retval = SSL_connect(ssl);
+	if (retval <= 0) {
+		switch (SSL_get_error(ssl, retval)) {
+			case SSL_ERROR_ZERO_RETURN:
+				fprintf(stderr, "SSL_connect failed with SSL_ERROR_ZERO_RETURN\n");
+				break;
+			case SSL_ERROR_WANT_READ:
+				fprintf(stderr, "SSL_connect failed with SSL_ERROR_WANT_READ\n");
+				break;
+			case SSL_ERROR_WANT_WRITE:
+				fprintf(stderr, "SSL_connect failed with SSL_ERROR_WANT_WRITE\n");
+				break;
+			case SSL_ERROR_WANT_CONNECT:
+				fprintf(stderr, "SSL_connect failed with SSL_ERROR_WANT_CONNECT\n");
+				break;
+			case SSL_ERROR_WANT_ACCEPT:
+				fprintf(stderr, "SSL_connect failed with SSL_ERROR_WANT_ACCEPT\n");
+				break;
+			case SSL_ERROR_WANT_X509_LOOKUP:
+				fprintf(stderr, "SSL_connect failed with SSL_ERROR_WANT_X509_LOOKUP\n");
+				break;
+			case SSL_ERROR_SYSCALL:
+				fprintf(stderr, "SSL_connect failed with SSL_ERROR_SYSCALL\n");
+				break;
+			case SSL_ERROR_SSL:
+				fprintf(stderr, "SSL_connect failed with SSL_ERROR_SSL\n");
+				break;
+			default:
+				fprintf(stderr, "SSL_connect failed with unknown error\n");
+				break;
+		}
+		exit(EXIT_FAILURE);
 	}
 
 	/* Set and activate timeouts */

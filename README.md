@@ -2,6 +2,8 @@
 This repository contains examples for DTLS via SCTP and UDP.
 Each application in `src` can be used as client or server.
 
+Our example are developed against the OpenSSL 1.1.x API.
+
 ## SCTP/UDP Examples
 **DTLS Echo Server and Client**  
 This sample includes a multi-threaded echo server and client sending messages over an SCTP/UDP connection encrypted with DTLS.
@@ -92,7 +94,7 @@ Since macOS does not support SCTP out of the box, it is necessary to use the SCT
 ## Build the Examples
 Before calling `make` in the `src` directory, it may be necessary to specify custom *library* and *include* paths.
 This is either done by modifying the *Makefile* or by providing the path as a command line argument.
-It is also possible to only build SCTP or UDP examples instead of both.
+It is also possible to only build SCTP or UDP examples.
 
 ```
 $ make
@@ -101,6 +103,13 @@ $ make udp  # only UDP examples
 ```
 
 ## OpenSSL Certificates
+In order to run the example programs, the required server and client certificates should be located in a `certs` subfolder.
+* client-cert.pem
+* client-key.pem
+* server-cert.pem
+* server-key.pem
+
+
 The following commands create signed certificates for client and server of the samples above.
 ```
 touch ca-db-index

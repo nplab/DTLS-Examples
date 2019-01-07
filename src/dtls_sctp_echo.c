@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2009 - 2012 Robin Seggelmann, seggelmann@fh-muenster.de,
  *                           Michael Tuexen, tuexen@fh-muenster.de
- * 
+ *
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -689,7 +689,7 @@ void start_client(char *remote_address, char* local_address, int port, int lengt
 				fprintf(stderr, "SSL_connect failed with unknown error\n");
 				break;
 		}
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 
 	if (verbose) {
