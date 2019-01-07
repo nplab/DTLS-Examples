@@ -51,8 +51,6 @@
 #include <openssl/ssl.h>
 #include <openssl/bio.h>
 #include <openssl/err.h>
-#define NEAT_USETLS
-#include "tls-trust.c"
 
 
 #define BUFFER_SIZE (1<<16)
@@ -717,7 +715,7 @@ void start_client(char *remote_address, char* local_address, int port, int timet
 				fprintf(stderr, "SSL_connect failed with unknown error\n");
 				break;
 		}
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 
 	if (verbose) {
