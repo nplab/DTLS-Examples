@@ -64,7 +64,10 @@ $ pkg install openssl111
 ### Linux (Ubuntu)
 The UDP examples should work with recent Linux distributions out-of-the-box.
 In order to run the SCTP examples, OpenSSL has to be built from scratch with SCTP support.
-
+* Install the SCTP headers.
+```
+sudo apt-get install libsctp-dev
+```
 * Download the recent OpenSSL version.  
 This example has been tested with OpenSSL 1.1.1a and Ubuntu 18.10.  
 * Configure OpenSSL to include SCTP support and (optionally) set a custom install prefix.  
