@@ -56,7 +56,7 @@ Options:
 ### FreeBSD
 Since FreeBSD 12.0, the built-in OpenSSL version is sufficient to run the UDP examples.  
 The SCTP examples and older versions of FreeBSD require OpenSSL to be installed via `pkg` or from scratch.  
-For FreeBSD 12.0 and 11.2, the pre-built OpenSSL 1.1.1 package is `openssl111`.  
+For FreeBSD 12.0 and 11.2, the OpenSSL 1.1.1 package from `pkg` is `openssl111`.  
 ```
 $ pkg install openssl111
 ```
@@ -71,7 +71,7 @@ This example has been tested with OpenSSL 1.1.1a and Ubuntu 18.10.
 * Build and install OpenSSL.
 
 ```
-$ ./config sctp --prefix=/home/weinrank/my-openssl/
+$ ./config sctp --prefix=$HOME/my-openssl/
 $ make
 $ make install
 ```
@@ -132,7 +132,7 @@ openssl ca -config ca.conf -days 365 -in client.csr -out client-cert.pem
 
 You can create your own [ca.conf](ca.conf) file or use a minimal sample.
 
-## Usage with OpenSSL S_CLIENT / S_SERVER
+## Usage with OpenSSL s_client / s_server
 The examples are not limited to be used with each other, they may also be used with the built-in OpenSSL application.
 
 The example below starts a SCTP echo server.

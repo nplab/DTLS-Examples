@@ -687,7 +687,7 @@ void start_client(char *remote_address, char* local_address, int port, int timet
 		ERR_print_errors_fp(stderr);
 		exit(EXIT_FAILURE);
 	}
-	
+
 	if (remote_addr.ss.ss_family == AF_INET) {
 		connect(fd, (struct sockaddr *) &remote_addr, sizeof(struct sockaddr_in));
 	} else {
