@@ -46,6 +46,11 @@
 #endif
 
 #include <netinet/sctp.h>
+#if !defined(SCTP_FUTURE_ASSOC) && defined(SCTP_EVENT)
+#define SCTP_FUTURE_ASSOC 0
+//      SCTP_CURRENT_ASSOC 1
+//      SCTP_ALL_ASSOC 2
+#endif
 
 #include <openssl/ssl.h>
 #include <openssl/bio.h>
