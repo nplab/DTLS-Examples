@@ -10,11 +10,12 @@ LIBS 		= -lssl -lcrypto -pthread -lm -ldl
 #INCLUDES	= -I/home/weinrank/openssl/include
 #LFLAGS		= -L/home/weinrank/openssl/lib
 
+# mac OS example
 #INCLUDES	= -I/usr/local/opt/openssl@1.1/include
 #LFLAGS		= -L/usr/local/opt/openssl@1.1/lib
 
 all		: sctp udp
-sctp	: dtls_sctp_chargen dtls_sctp_discard dtls_sctp_echo
+sctp		: dtls_sctp_chargen dtls_sctp_discard dtls_sctp_echo
 udp		: dtls_udp_chargen dtls_udp_discard dtls_udp_echo
 
 dtls_sctp_chargen: dtls_sctp_chargen.c

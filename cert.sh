@@ -22,3 +22,9 @@ $OPENSSL_BIN req -nodes -new -newkey rsa:2048 -keyout client-key.pem -out client
 
 # Sign Client Certificate
 $OPENSSL_BIN ca -config $SCRIPT_DIR/ca.conf -days 365 -in client.csr -out client-cert.pem
+
+mkdir -p src/certs/
+cp client-cert.pem src/certs/
+cp client-key.pem src/certs/
+cp server-cert.pem src/certs/
+cp server-key.pem src/certs/
