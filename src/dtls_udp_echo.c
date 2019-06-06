@@ -1023,7 +1023,6 @@ int main(int argc, char **argv)
 
 	if (argc > 1) goto cmd_err;
 
-
 	if (OpenSSL_version_num() != OPENSSL_VERSION_NUMBER) {
 		printf("Warning: OpenSSL version mismatch!\n");
 		printf("Compiled against %s\n", OPENSSL_VERSION_TEXT);
