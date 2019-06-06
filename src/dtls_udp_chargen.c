@@ -457,7 +457,7 @@ void* connection_handle(void *info) {
 	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (const char*) &on, (socklen_t) sizeof(on));
 #else
 	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (const void*) &on, (socklen_t) sizeof(on));
-#if defined(SO_REUSEPORT) && defined(__linux__)
+#if defined(SO_REUSEPORT) && !defined(__linux__)
 	setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, (const void*) &on, (socklen_t) sizeof(on));
 #endif
 #endif
@@ -762,7 +762,7 @@ void start_server(int port, char *local_address) {
 	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (const char*) &on, (socklen_t) sizeof(on));
 #else
 	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (const void*) &on, (socklen_t) sizeof(on));
-#if defined(SO_REUSEPORT) && defined(__linux__)
+#if defined(SO_REUSEPORT) && !defined(__linux__)
 	setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, (const void*) &on, (socklen_t) sizeof(on));
 #endif
 #endif
