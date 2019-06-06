@@ -1191,6 +1191,19 @@ int main(int argc, char **argv)
 
 	if (argc > 1) goto cmd_err;
 
+	if (OpenSSL_version_num() != OPENSSL_VERSION_NUMBER) {
+		printf("Warning: OpenSSL version mismatch!\n");
+		printf("Compiled against %s\n", OPENSSL_VERSION_TEXT);
+		printf("Linked against   %s\n", OpenSSL_version(OPENSSL_VERSION));
+
+		if (OpenSSL_version_num() >> 20 != OPENSSL_VERSION_NUMBER >> 20) {
+			printf("Major and minor version numbers must match, exiting.\n");
+			exit(EXIT_FAILURE);
+		}
+	} else if (verbose) {
+		printf("Using %s\n", OpenSSL_version(OPENSSL_VERSION));
+	}
+
 	if (argc == 1)
 		start_client(*argv, local_addr, port, timetosend);
 	else

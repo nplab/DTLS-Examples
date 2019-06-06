@@ -52,6 +52,7 @@
 #include <openssl/bio.h>
 #include <openssl/err.h>
 #include <openssl/rand.h>
+#include <openssl/opensslv.h>
 
 
 #define BUFFER_SIZE          (1<<16)
@@ -972,6 +973,7 @@ void start_client(char *remote_address, char *local_address, int port, int lengt
 #endif
 }
 
+
 int main(int argc, char **argv)
 {
 	int port = 23232;
@@ -1020,6 +1022,19 @@ int main(int argc, char **argv)
 	}
 
 	if (argc > 1) goto cmd_err;
+
+	if (OpenSSL_version_num() != OPENSSL_VERSION_NUMBER) {
+		printf("Warning: OpenSSL version mismatch!\n");
+		printf("Compiled against %s\n", OPENSSL_VERSION_TEXT);
+		printf("Linked against   %s\n", OpenSSL_version(OPENSSL_VERSION));
+
+		if (OpenSSL_version_num() >> 20 != OPENSSL_VERSION_NUMBER >> 20) {
+			printf("Major and minor version numbers must match, exiting.\n");
+			exit(EXIT_FAILURE);
+		}
+	} else if (verbose) {
+		printf("Using %s\n", OpenSSL_version(OPENSSL_VERSION));
+	}
 
 	if (argc == 1)
 		start_client(*argv, local_addr, port, length, messagenumber);
