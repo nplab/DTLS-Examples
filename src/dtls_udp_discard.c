@@ -414,6 +414,9 @@ void* connection_handle(void *info) {
 	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (const char*) &on, (socklen_t) sizeof(on));
 #else
 	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (const void*) &on, (socklen_t) sizeof(on));
+#if defined(SO_REUSEPORT) && defined(__linux__)
+	setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, (const void*) &on, (socklen_t) sizeof(on));
+#endif
 #endif
 	switch (pinfo->client_addr.ss.ss_family) {
 		case AF_INET:
@@ -671,6 +674,9 @@ void start_server(int port, char *local_address) {
 	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (const char*) &on, (socklen_t) sizeof(on));
 #else
 	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (const void*) &on, (socklen_t) sizeof(on));
+#if defined(SO_REUSEPORT) && defined(__linux__)
+	setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, (const void*) &on, (socklen_t) sizeof(on));
+#endif
 #endif
 	if (server_addr.ss.ss_family == AF_INET) {
 		if (bind(fd, (const struct sockaddr *) &server_addr, sizeof(struct sockaddr_in))) {
