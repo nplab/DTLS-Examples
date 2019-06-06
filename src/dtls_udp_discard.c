@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2009 - 2012 Robin Seggelmann, seggelmann@fh-muenster.de,
  *                           Michael Tuexen, tuexen@fh-muenster.de
+ *               2019 Felix Weinrank, weinrank@fh-muenster.de
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -413,9 +414,6 @@ void* connection_handle(void *info) {
 	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (const char*) &on, (socklen_t) sizeof(on));
 #else
 	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (const void*) &on, (socklen_t) sizeof(on));
-#ifdef SO_REUSEPORT
-	setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, (const void*) &on, (socklen_t) sizeof(on));
-#endif
 #endif
 	switch (pinfo->client_addr.ss.ss_family) {
 		case AF_INET:
@@ -673,15 +671,18 @@ void start_server(int port, char *local_address) {
 	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (const char*) &on, (socklen_t) sizeof(on));
 #else
 	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (const void*) &on, (socklen_t) sizeof(on));
-#ifdef SO_REUSEPORT
-	setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, (const void*) &on, (socklen_t) sizeof(on));
-#endif
 #endif
 	if (server_addr.ss.ss_family == AF_INET) {
-		bind(fd, (const struct sockaddr *) &server_addr, sizeof(struct sockaddr_in));
+		if (bind(fd, (const struct sockaddr *) &server_addr, sizeof(struct sockaddr_in))) {
+			perror("bind");
+			exit(EXIT_FAILURE);
+		}
 	} else {
 		setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, (char *)&off, sizeof(off));
-		bind(fd, (const struct sockaddr *) &server_addr, sizeof(struct sockaddr_in6));
+		if (bind(fd, (const struct sockaddr *) &server_addr, sizeof(struct sockaddr_in6))) {
+			perror("bind");
+			exit(EXIT_FAILURE);
+		}
 	}
 	while (1) {
 		memset(&client_addr, 0, sizeof(struct sockaddr_storage));
@@ -791,9 +792,15 @@ void start_client(char *remote_address, char *local_address, int port, int timet
 		}
 		OPENSSL_assert(remote_addr.ss.ss_family == local_addr.ss.ss_family);
 		if (local_addr.ss.ss_family == AF_INET) {
-			bind(fd, (const struct sockaddr *) &local_addr, sizeof(struct sockaddr_in));
+			if (bind(fd, (const struct sockaddr *) &local_addr, sizeof(struct sockaddr_in))) {
+				perror("bind");
+				exit(EXIT_FAILURE);
+			}
 		} else {
-			bind(fd, (const struct sockaddr *) &local_addr, sizeof(struct sockaddr_in6));
+			if (bind(fd, (const struct sockaddr *) &local_addr, sizeof(struct sockaddr_in6))) {
+				perror("bind");
+				exit(EXIT_FAILURE);
+			}
 		}
 	}
 
@@ -819,9 +826,15 @@ void start_client(char *remote_address, char *local_address, int port, int timet
 	/* Create BIO, connect and set to already connected */
 	bio = BIO_new_dgram(fd, BIO_CLOSE);
 	if (remote_addr.ss.ss_family == AF_INET) {
-		connect(fd, (struct sockaddr *) &remote_addr, sizeof(struct sockaddr_in));
+		if (connect(fd, (struct sockaddr *) &remote_addr, sizeof(struct sockaddr_in))) {
+			perror("connect");
+			exit(EXIT_FAILURE);
+		}
 	} else {
-		connect(fd, (struct sockaddr *) &remote_addr, sizeof(struct sockaddr_in6));
+		if (connect(fd, (struct sockaddr *) &remote_addr, sizeof(struct sockaddr_in6))) {
+			perror("connect");
+			exit(EXIT_FAILURE);
+		}
 	}
 	BIO_ctrl(bio, BIO_CTRL_DGRAM_SET_CONNECTED, 0, &remote_addr.ss);
 
