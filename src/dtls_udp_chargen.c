@@ -462,13 +462,25 @@ void* connection_handle(void *info) {
 #endif
 	switch (pinfo->client_addr.ss.ss_family) {
 		case AF_INET:
-			bind(fd, (const struct sockaddr *) &pinfo->server_addr, sizeof(struct sockaddr_in));
-			connect(fd, (struct sockaddr *) &pinfo->client_addr, sizeof(struct sockaddr_in));
+			if (bind(fd, (const struct sockaddr *) &pinfo->server_addr, sizeof(struct sockaddr_in))) {
+				perror("bind");
+				goto cleanup;
+			}
+			if (connect(fd, (struct sockaddr *) &pinfo->client_addr, sizeof(struct sockaddr_in))) {
+				perror("connect");
+				goto cleanup;
+			}
 			break;
 		case AF_INET6:
 			setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, (char *)&off, sizeof(off));
-			bind(fd, (const struct sockaddr *) &pinfo->server_addr, sizeof(struct sockaddr_in6));
-			connect(fd, (struct sockaddr *) &pinfo->client_addr, sizeof(struct sockaddr_in6));
+			if (bind(fd, (const struct sockaddr *) &pinfo->server_addr, sizeof(struct sockaddr_in6))) {
+				perror("bind");
+				goto cleanup;
+			}
+			if (connect(fd, (struct sockaddr *) &pinfo->client_addr, sizeof(struct sockaddr_in6))) {
+				perror("connect");
+				goto cleanup;
+			}
 			break;
 		default:
 			OPENSSL_assert(0);
