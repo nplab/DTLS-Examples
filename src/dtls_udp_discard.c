@@ -1061,6 +1061,17 @@ int main(int argc, char **argv)
 
 	if (argc > 1) goto cmd_err;
 
+	if (OPENSSL_VERSION_NUMBER != OpenSSL_version_num()) {
+		printf("OpenSSL version mismatch!\n");
+		printf("Compiled against %s\n", OPENSSL_VERSION_TEXT);
+		printf("Linked against   %s\n", OpenSSL_version(OPENSSL_VERSION));
+		exit(EXIT_FAILURE);
+	}
+
+	if (verbose) {
+		printf("Using %s\n", OpenSSL_version(OPENSSL_VERSION));
+	}
+
 	if (argc == 1)
 		start_client(*argv, local_addr, port, timetosend);
 	else

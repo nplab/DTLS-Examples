@@ -7,8 +7,8 @@ LIBS 		= -lssl -lcrypto -pthread -lm -ldl
 #CFLAGS		+= -fsanitize=address -fno-omit-frame-pointer -g
 #CFLAGS		+= -fsanitize=memory -fno-omit-frame-pointer -g -fsanitize-memory-track-origins
 
-#INCLUDES	= -I/home/weinrank/openssl/include
-#LFLAGS		= -L/home/weinrank/openssl/lib
+#INCLUDES	= -I$(HOME)/my-openssl/include
+#LFLAGS		= -L$(HOME)/my-openssl/lib
 
 # mac OS example
 #INCLUDES	= -I/usr/local/opt/openssl@1.1/include

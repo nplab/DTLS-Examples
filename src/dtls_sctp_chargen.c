@@ -1062,6 +1062,17 @@ int main(int argc, char **argv)
 				exit(1);
 		}
 
+	if (OPENSSL_VERSION_NUMBER != OpenSSL_version_num()) {
+		printf("OpenSSL version mismatch!\n");
+		printf("Compiled against %s\n", OPENSSL_VERSION_TEXT);
+		printf("Linked against   %s\n", OpenSSL_version(OPENSSL_VERSION));
+		exit(EXIT_FAILURE);
+	}
+
+	if (verbose) {
+		printf("Using %s\n", OpenSSL_version(OPENSSL_VERSION));
+	}
+
 	if (optind == argc)
 		start_server(port, local_addr);
 	else
