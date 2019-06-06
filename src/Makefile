@@ -11,8 +11,8 @@ LIBS 		= -lssl -lcrypto -pthread -lm -ldl
 #LFLAGS		= -L$(HOME)/my-openssl/lib
 
 # mac OS example
-#INCLUDES	= -I/usr/local/opt/openssl@1.1/include
-#LFLAGS		= -L/usr/local/opt/openssl@1.1/lib
+INCLUDES	= -I/usr/local/opt/openssl@1.1/include
+LFLAGS		= -L/usr/local/opt/openssl@1.1/lib
 
 all		: sctp udp
 sctp		: dtls_sctp_chargen dtls_sctp_discard dtls_sctp_echo
