@@ -934,6 +934,11 @@ int main(int argc, char **argv)
 		printf("Using %s\n", OpenSSL_version(OPENSSL_VERSION));
 	}
 
+	if (OPENSSL_VERSION_NUMBER < 0x1010102fL) {
+		printf("Error: %s is unsupported, use OpenSSL Version 1.1.1a or higher\n", OpenSSL_version(OPENSSL_VERSION));
+		exit(EXIT_FAILURE);
+	}
+
 	if (optind == argc)
 		start_server(port, local_addr, request_peer_certificate);
 	else

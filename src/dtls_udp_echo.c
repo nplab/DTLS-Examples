@@ -1029,11 +1029,16 @@ int main(int argc, char **argv)
 		printf("Linked against   %s\n", OpenSSL_version(OPENSSL_VERSION));
 
 		if (OpenSSL_version_num() >> 20 != OPENSSL_VERSION_NUMBER >> 20) {
-			printf("Major and minor version numbers must match, exiting.\n");
+			printf("Error: Major and minor version numbers must match, exiting.\n");
 			exit(EXIT_FAILURE);
 		}
 	} else if (verbose) {
 		printf("Using %s\n", OpenSSL_version(OPENSSL_VERSION));
+	}
+
+	if (OPENSSL_VERSION_NUMBER < 0x1010102fL) {
+		printf("Error: %s is unsupported, use OpenSSL Version 1.1.1a or higher\n", OpenSSL_version(OPENSSL_VERSION));
+		exit(EXIT_FAILURE);
 	}
 
 	if (argc == 1)
