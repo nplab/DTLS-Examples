@@ -1024,6 +1024,7 @@ int main(int argc, char **argv)
 	char local_addr[INET6_ADDRSTRLEN+1];
 	char c;
 
+	srand(time(NULL));
 	memset(local_addr, 0, INET6_ADDRSTRLEN+1);
 
 	while ((c = getopt(argc, argv, "p:t:l:s:L:uvV")) != -1) {

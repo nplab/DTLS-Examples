@@ -823,6 +823,7 @@ int main(int argc, char **argv)
 	char c;
 	int request_peer_certificate = 0;
 
+	srand(time(NULL));
 	memset(local_addr, 0, INET6_ADDRSTRLEN+1);
 
 	while ((c = getopt(argc, argv, "p:l:L:n:rvV")) != -1) {

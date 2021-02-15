@@ -842,7 +842,7 @@ void start_client(char *remote_address, char *local_address, int port, int timet
 #endif
 
 	memset((void *) &remote_addr, 0, sizeof(struct sockaddr_storage));
-	memset((void *) &local_addr, 0, sizeof(struct sockaddr_storage));
+	memset((void *) &local_addr,  0, sizeof(struct sockaddr_storage));
 
 	if (inet_pton(AF_INET, remote_address, &remote_addr.s4.sin_addr) == 1) {
 		remote_addr.s4.sin_family = AF_INET;
@@ -1150,6 +1150,7 @@ int main(int argc, char **argv)
 	char local_addr[INET6_ADDRSTRLEN+1];
 	char c;
 
+	srand(time(NULL));
 	memset(local_addr, 0, INET6_ADDRSTRLEN+1);
 
 	while ((c = getopt(argc, argv, "p:t:l:L:vV")) != -1) {
