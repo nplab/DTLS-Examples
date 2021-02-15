@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2009 - 2012 Robin Seggelmann, seggelmann@fh-muenster.de,
  *                           Michael Tuexen, tuexen@fh-muenster.de
- *               2019 Felix Weinrank, weinrank@fh-muenster.de
+ *               2019 - 2021 Felix Weinrank, weinrank@fh-muenster.de
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,10 +61,10 @@
 
 int verbose = 0;
 int veryverbose = 0;
-int length = 100;
+int payload_length = 100;
 int done = 0;
 unsigned char cookie_secret[COOKIE_SECRET_LENGTH];
-int cookie_initialized=0;
+int cookie_initialized = 0;
 
 char Usage[] =
 "Usage: dtls_udp_chargen [options] [address]\n"
@@ -549,7 +549,7 @@ void* connection_handle(void *info) {
 		memcpy(buf, &count, sizeof(int));
 		count = ntohl(count);
 
-		len = SSL_write(ssl, buf, length);
+		len = SSL_write(ssl, buf, payload_length);
 
 		switch (SSL_get_error(ssl, len)) {
 			case SSL_ERROR_NONE:
@@ -1024,7 +1024,7 @@ void start_client(char *remote_address, char *local_address, int port, int timet
 			memcpy(buf, &count, sizeof(int));
 			count = ntohl(count);
 
-			len = SSL_write(ssl, buf, length);
+			len = SSL_write(ssl, buf, payload_length);
 
 			switch (SSL_get_error(ssl, len)) {
 				case SSL_ERROR_NONE:
@@ -1148,48 +1148,38 @@ int main(int argc, char **argv)
 	int port = 23232;
 	int timetosend = 10;
 	char local_addr[INET6_ADDRSTRLEN+1];
+	char c;
 
 	memset(local_addr, 0, INET6_ADDRSTRLEN+1);
 
-	argc--;
-	argv++;
-
-	while (argc >= 1) {
-		if	(strcmp(*argv, "-l") == 0) {
-			if (--argc < 1) goto cmd_err;
-			length = atoi(*++argv);
-			if (length > BUFFER_SIZE)
-				length = BUFFER_SIZE;
+	while ((c = getopt(argc, argv, "p:t:l:L:vV")) != -1) {
+		switch(c) {
+			case 'l':
+				payload_length = atoi(optarg);
+				if (payload_length > BUFFER_SIZE)
+					payload_length = BUFFER_SIZE;
+				break;
+			case 'L':
+				strncpy(local_addr, optarg, INET6_ADDRSTRLEN);
+				break;
+			case 'p':
+				port = atoi(optarg);
+				break;
+			case 't':
+				timetosend = atoi(optarg);
+				break;
+			case 'v':
+				verbose = 1;
+				break;
+			case 'V':
+				verbose = 1;
+				veryverbose = 1;
+				break;
+			default:
+				fprintf(stderr, "%s\n", Usage);
+				exit(1);
 		}
-		else if	(strcmp(*argv, "-L") == 0) {
-			if (--argc < 1) goto cmd_err;
-			strncpy(local_addr, *++argv, INET6_ADDRSTRLEN);
-		}
-		else if	(strcmp(*argv, "-p") == 0) {
-			if (--argc < 1) goto cmd_err;
-			port = atoi(*++argv);
-		}
-		else if	(strcmp(*argv, "-t") == 0) {
-			if (--argc < 1) goto cmd_err;
-			timetosend = atoi(*++argv);
-		}
-		else if	(strcmp(*argv, "-v") == 0) {
-			verbose = 1;
-		}
-		else if	(strcmp(*argv, "-V") == 0) {
-			verbose = 1;
-			veryverbose = 1;
-		}
-		else if	(((*argv)[0]) == '-') {
-			goto cmd_err;
-		}
-		else break;
-
-		argc--;
-		argv++;
 	}
-
-	if (argc > 1) goto cmd_err;
 
 	if (OpenSSL_version_num() != OPENSSL_VERSION_NUMBER) {
 		printf("Warning: OpenSSL version mismatch!\n");
@@ -1209,14 +1199,11 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	if (argc == 1)
-		start_client(*argv, local_addr, port, timetosend);
-	else
+	if (optind == argc) {
 		start_server(port, local_addr);
+	} else {
+		start_client(argv[optind], local_addr, port, timetosend);
+	}
 
 	return 0;
-
-cmd_err:
-	fprintf(stderr, "%s\n", Usage);
-	return 1;
 }

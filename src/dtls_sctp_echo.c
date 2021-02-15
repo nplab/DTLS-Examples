@@ -825,7 +825,7 @@ int main(int argc, char **argv)
 
 	memset(local_addr, 0, INET6_ADDRSTRLEN+1);
 
-	while ((c = getopt(argc, argv, "p:l:L:n:rvV")) != -1)
+	while ((c = getopt(argc, argv, "p:l:L:n:rvV")) != -1) {
 		switch(c) {
 			case 'l':
 				length = atoi(optarg);
@@ -855,6 +855,7 @@ int main(int argc, char **argv)
 				fprintf(stderr, "%s\n", Usage);
 				exit(1);
 		}
+	}
 
 	if (OpenSSL_version_num() != OPENSSL_VERSION_NUMBER) {
 		printf("Warning: OpenSSL version mismatch!\n");

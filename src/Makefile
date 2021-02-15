@@ -1,5 +1,5 @@
 
-CFLAGS      = -std=c99 -pedantic -Wall -g -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overlength-strings
+CFLAGS      = -std=c99 -g -O2 -pedantic -Wall -Wextra -Wfloat-equal -Wshadow -Wno-unused-parameter -Wno-unused-function -Wno-overlength-strings
 INCLUDES    = -I/usr/local/include
 LFLAGS      = -L/usr/local/lib
 LIBS        = -lssl -lcrypto -pthread -lm -ldl
@@ -12,8 +12,8 @@ LIBS        = -lssl -lcrypto -pthread -lm -ldl
 #LFLAGS     = -L$(HOME)/my-openssl/lib
 
 # mac OS example
-#INCLUDES   = -I/usr/local/opt/openssl@1.1/include
-#LFLAGS	    = -L/usr/local/opt/openssl@1.1/lib
+INCLUDES   = -I/usr/local/opt/openssl@1.1/include
+LFLAGS	    = -L/usr/local/opt/openssl@1.1/lib
 
 all     : sctp udp
 sctp    : dtls_sctp_chargen dtls_sctp_discard dtls_sctp_echo
