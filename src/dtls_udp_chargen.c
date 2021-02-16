@@ -2,6 +2,7 @@
  * Copyright (C) 2009 - 2012 Robin Seggelmann, seggelmann@fh-muenster.de,
  *                           Michael Tuexen, tuexen@fh-muenster.de
  *               2019 - 2021 Felix Weinrank, weinrank@fh-muenster.de
+ *
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -766,6 +767,7 @@ void start_server(int port, char *local_address) {
 	setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, (const void*) &on, (socklen_t) sizeof(on));
 #endif
 #endif
+
 	if (server_addr.ss.ss_family == AF_INET) {
 		if (bind(fd, (const struct sockaddr *) &server_addr, sizeof(struct sockaddr_in))) {
 			perror("bind");
@@ -1188,7 +1190,7 @@ int main(int argc, char **argv)
 		printf("Linked against   %s\n", OpenSSL_version(OPENSSL_VERSION));
 
 		if (OpenSSL_version_num() >> 20 != OPENSSL_VERSION_NUMBER >> 20) {
-			printf("Major and minor version numbers must match, exiting.\n");
+			printf("Error: Major and minor version numbers must match, exiting.\n");
 			exit(EXIT_FAILURE);
 		}
 	} else if (verbose) {

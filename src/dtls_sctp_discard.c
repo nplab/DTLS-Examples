@@ -1,6 +1,8 @@
 /*
  * Copyright (C) 2009 - 2012 Robin Seggelmann, seggelmann@fh-muenster.de,
  *                           Michael Tuexen, tuexen@fh-muenster.de
+ *               2019 - 2021 Felix Weinrank, weinrank@fh-muenster.de
+ * 
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -262,37 +264,9 @@ void* connection_handle(void *info) {
 	if (veryverbose)
 		BIO_dgram_sctp_notification_cb(bio, &handle_notifications, (void*) ssl);
 
-	retval = SSL_accept(ssl);
-	if (retval <= 0) {
-		switch (SSL_get_error(ssl, retval)) {
-			case SSL_ERROR_ZERO_RETURN:
-				fprintf(stderr, "SSL_accept failed with SSL_ERROR_ZERO_RETURN\n");
-				break;
-			case SSL_ERROR_WANT_READ:
-				fprintf(stderr, "SSL_accept failed with SSL_ERROR_WANT_READ\n");
-				break;
-			case SSL_ERROR_WANT_WRITE:
-				fprintf(stderr, "SSL_accept failed with SSL_ERROR_WANT_WRITE\n");
-				break;
-			case SSL_ERROR_WANT_CONNECT:
-				fprintf(stderr, "SSL_accept failed with SSL_ERROR_WANT_CONNECT\n");
-				break;
-			case SSL_ERROR_WANT_ACCEPT:
-				fprintf(stderr, "SSL_accept failed with SSL_ERROR_WANT_ACCEPT\n");
-				break;
-			case SSL_ERROR_WANT_X509_LOOKUP:
-				fprintf(stderr, "SSL_accept failed with SSL_ERROR_WANT_X509_LOOKUP\n");
-				break;
-			case SSL_ERROR_SYSCALL:
-				fprintf(stderr, "SSL_accept failed with SSL_ERROR_SYSCALL\n");
-				break;
-			case SSL_ERROR_SSL:
-				fprintf(stderr, "SSL_accept failed with SSL_ERROR_SSL\n");
-				break;
-			default:
-				fprintf(stderr, "SSL_accept failed with unknown error\n");
-				break;
-		}
+	if (SSL_accept(ssl) <= 0) {
+		perror("SSL_accept");
+		printf("%s (%d)\n", ERR_error_string(ERR_get_error(), buf), SSL_get_error(ssl, len));
 		goto cleanup;
 	}
 

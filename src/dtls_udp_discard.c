@@ -1,7 +1,8 @@
 /*
  * Copyright (C) 2009 - 2012 Robin Seggelmann, seggelmann@fh-muenster.de,
  *                           Michael Tuexen, tuexen@fh-muenster.de
- *               2019 Felix Weinrank, weinrank@fh-muenster.de
+ *               2019 - 2021 Felix Weinrank, weinrank@fh-muenster.de
+ *
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,7 +66,7 @@ int payload_length = 100;
 int done = 0;
 int interrupted = 0;
 unsigned char cookie_secret[COOKIE_SECRET_LENGTH];
-int cookie_initialized=0;
+int cookie_initialized = 0;
 
 char Usage[] =
 "Usage: dtls_udp_chargen [options] [address]\n"
@@ -641,17 +642,22 @@ void start_server(int port, char *local_address) {
 	 */
 	//SSL_CTX_set_cipher_list(ctx, "ALL:NULL:eNULL:aNULL");
 	pid = getpid();
-	if( !SSL_CTX_set_session_id_context(ctx, (void*)&pid, sizeof pid) )
+	if (!SSL_CTX_set_session_id_context(ctx, (void*)&pid, sizeof pid)) {
 		perror("SSL_CTX_set_session_id_context");
+		exit(EXIT_FAILURE);
+	}
 
-	if (!SSL_CTX_use_certificate_file(ctx, "certs/server-cert.pem", SSL_FILETYPE_PEM))
-		printf("\nERROR: no certificate found!");
+	if (!SSL_CTX_use_certificate_file(ctx, "certs/server-cert.pem", SSL_FILETYPE_PEM)) {
+		printf("\n[%d] ERROR: no certificate found!", __LINE__);
+		ERR_print_errors_fp(stderr);
+		exit(EXIT_FAILURE);
+	}
 
 	if (!SSL_CTX_use_PrivateKey_file(ctx, "certs/server-key.pem", SSL_FILETYPE_PEM))
-		printf("\nERROR: no private key found!");
+		printf("\n[%d] ERROR: no private key found!", __LINE__);
 
 	if (!SSL_CTX_check_private_key (ctx))
-		printf("\nERROR: invalid private key!");
+		printf("\n[%d] ERROR: invalid private key!", __LINE__);
 
 	/* Client has to authenticate */
 	SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE, dtls_verify_callback);
@@ -678,6 +684,7 @@ void start_server(int port, char *local_address) {
 	setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, (const void*) &on, (socklen_t) sizeof(on));
 #endif
 #endif
+
 	if (server_addr.ss.ss_family == AF_INET) {
 		if (bind(fd, (const struct sockaddr *) &server_addr, sizeof(struct sockaddr_in))) {
 			perror("bind");
@@ -752,7 +759,7 @@ void start_client(char *remote_address, char *local_address, int port, int timet
 #endif
 
 	memset((void *) &remote_addr, 0, sizeof(struct sockaddr_storage));
-	memset((void *) &local_addr, 0, sizeof(struct sockaddr_storage));
+	memset((void *) &local_addr,  0, sizeof(struct sockaddr_storage));
 
 	if (inet_pton(AF_INET, remote_address, &remote_addr.s4.sin_addr) == 1) {
 		remote_addr.s4.sin_family = AF_INET;
@@ -777,7 +784,7 @@ void start_client(char *remote_address, char *local_address, int port, int timet
 	fd = socket(remote_addr.ss.ss_family, SOCK_DGRAM, 0);
 	if (fd < 0) {
 		perror("socket");
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 
 	if (strlen(local_address) > 0) {
@@ -813,16 +820,22 @@ void start_client(char *remote_address, char *local_address, int port, int timet
 	OpenSSL_add_ssl_algorithms();
 	SSL_load_error_strings();
 	ctx = SSL_CTX_new(DTLS_client_method());
-	//SSL_CTX_set_cipher_list(ctx, "eNULL");
+	//SSL_CTX_set_cipher_list(ctx, "eNULL:!MD5");
 
-	if (!SSL_CTX_use_certificate_file(ctx, "certs/client-cert.pem", SSL_FILETYPE_PEM))
-		printf("\nERROR: no certificate found!");
+	if (!SSL_CTX_use_certificate_file(ctx, "certs/client-cert.pem", SSL_FILETYPE_PEM)) {
+		printf("\n[%d] ERROR: no certificate found!", __LINE__);
+		exit(EXIT_FAILURE);
+	}
 
-	if (!SSL_CTX_use_PrivateKey_file(ctx, "certs/client-key.pem", SSL_FILETYPE_PEM))
-		printf("\nERROR: no private key found!");
+	if (!SSL_CTX_use_PrivateKey_file(ctx, "certs/client-key.pem", SSL_FILETYPE_PEM)) {
+		printf("\n[%d] ERROR: no private key found!", __LINE__);
+		exit(EXIT_FAILURE);
+	}
 
-	if (!SSL_CTX_check_private_key (ctx))
-		printf("\nERROR: invalid private key!");
+	if (!SSL_CTX_check_private_key (ctx)) {
+		printf("\n[%d] ERROR: invalid private key!", __LINE__);
+		exit(EXIT_FAILURE);
+	}
 
 	SSL_CTX_set_verify_depth (ctx, 2);
 	SSL_CTX_set_read_ahead(ctx, 1);
@@ -1017,14 +1030,11 @@ int main(int argc, char **argv)
 {
 	int port = 23232;
 	int timetosend = 10;
-	char local_addr[INET6_ADDRSTRLEN + 1];
+	char local_addr[INET6_ADDRSTRLEN+1];
 	char c;
 
 	srand(time(NULL));
-	memset(local_addr, 0, INET6_ADDRSTRLEN + 1);
-
-	argc--;
-	argv++;
+	memset(local_addr, 0, INET6_ADDRSTRLEN+1);
 
 	while ((c = getopt(argc, argv, "p:t:l:L:vV")) != -1) {
 		switch(c) {
@@ -1061,7 +1071,7 @@ int main(int argc, char **argv)
 		printf("Linked against   %s\n", OpenSSL_version(OPENSSL_VERSION));
 
 		if (OpenSSL_version_num() >> 20 != OPENSSL_VERSION_NUMBER >> 20) {
-			printf("Major and minor version numbers must match, exiting.\n");
+			printf("Error: Major and minor version numbers must match, exiting.\n");
 			exit(EXIT_FAILURE);
 		}
 	} else if (verbose) {
