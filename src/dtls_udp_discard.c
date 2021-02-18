@@ -85,16 +85,17 @@ static pthread_mutex_t* mutex_buf = NULL;
 #endif
 
 static void locking_function(int mode, int n, const char *file, int line) {
-	if (mode & CRYPTO_LOCK)
+	if (mode & CRYPTO_LOCK) {
 #ifdef WIN32
 		WaitForSingleObject(mutex_buf[n], INFINITE);
-	else
+	} else {
 		ReleaseMutex(mutex_buf[n]);
 #else
 		pthread_mutex_lock(&mutex_buf[n]);
-	else
+	} else {
 		pthread_mutex_unlock(&mutex_buf[n]);
 #endif
+	}
 }
 
 static unsigned long id_function(void) {
@@ -113,14 +114,18 @@ int THREAD_setup() {
 #else
 	mutex_buf = (pthread_mutex_t*) malloc(CRYPTO_num_locks() * sizeof(pthread_mutex_t));
 #endif
-	if (!mutex_buf)
+	if (!mutex_buf) {
 		return 0;
-	for (i = 0; i < CRYPTO_num_locks(); i++)
+	}
+
+	for (i = 0; i < CRYPTO_num_locks(); i++) {
 #ifdef WIN32
 		mutex_buf[i] = CreateMutex(NULL, FALSE, NULL);
 #else
 		pthread_mutex_init(&mutex_buf[i], NULL);
 #endif
+	}
+
 	CRYPTO_set_id_callback(id_function);
 	CRYPTO_set_locking_callback(locking_function);
 	return 1;
@@ -129,17 +134,20 @@ int THREAD_setup() {
 int THREAD_cleanup() {
 	int i;
 
-	if (!mutex_buf)
+	if (!mutex_buf) {
 		return 0;
+	}
 
 	CRYPTO_set_id_callback(NULL);
 	CRYPTO_set_locking_callback(NULL);
-	for (i = 0; i < CRYPTO_num_locks(); i++)
+	for (i = 0; i < CRYPTO_num_locks(); i++) {
 #ifdef WIN32
-	CloseHandle(mutex_buf[i]);
+		CloseHandle(mutex_buf[i]);
 #else
-	pthread_mutex_destroy(&mutex_buf[i]);
+		pthread_mutex_destroy(&mutex_buf[i]);
 #endif
+	}
+
 	free(mutex_buf);
 	mutex_buf = NULL;
 	return 1;
@@ -195,6 +203,13 @@ int handle_socket_error() {
 			printf("Permission denied!\n");
 			return 1;
 			break;
+		case ECONNREFUSED:
+			/* Connection refused.
+			 * We will ingore this for now
+			 */
+			printf("Connection refused!\n");
+			return 1;
+			break;
 		default:
 			/* Something unexpected happened */
 			printf("Unexpected error! (errno = %d)\n", errno);
@@ -214,8 +229,7 @@ void handle_sigalrm(int sig) {
 	signal(SIGALRM, handle_sigalrm);
 }
 
-int generate_cookie(SSL *ssl, unsigned char *cookie, unsigned int *cookie_len)
-	{
+int generate_cookie(SSL *ssl, unsigned char *cookie, unsigned int *cookie_len) {
 	unsigned char *buffer, result[EVP_MAX_MD_SIZE];
 	unsigned int length = 0, resultlength;
 	union {
@@ -225,15 +239,13 @@ int generate_cookie(SSL *ssl, unsigned char *cookie, unsigned int *cookie_len)
 	} peer;
 
 	/* Initialize a random secret */
-	if (!cookie_initialized)
-		{
-		if (!RAND_bytes(cookie_secret, COOKIE_SECRET_LENGTH))
-			{
+	if (!cookie_initialized) {
+		if (!RAND_bytes(cookie_secret, COOKIE_SECRET_LENGTH)) {
 			printf("error setting random cookie secret\n");
 			return 0;
-			}
-		cookie_initialized = 1;
 		}
+		cookie_initialized = 1;
+	}
 
 	/* Read peer information */
 	(void) BIO_dgram_get_peer(SSL_get_rbio(ssl), &peer);
@@ -251,31 +263,23 @@ int generate_cookie(SSL *ssl, unsigned char *cookie, unsigned int *cookie_len)
 			OPENSSL_assert(0);
 			break;
 	}
+
 	length += sizeof(in_port_t);
 	buffer = (unsigned char*) OPENSSL_malloc(length);
 
-	if (buffer == NULL)
-		{
+	if (buffer == NULL) {
 		printf("out of memory\n");
 		return 0;
-		}
+	}
 
 	switch (peer.ss.ss_family) {
 		case AF_INET:
-			memcpy(buffer,
-				   &peer.s4.sin_port,
-				   sizeof(in_port_t));
-			memcpy(buffer + sizeof(peer.s4.sin_port),
-				   &peer.s4.sin_addr,
-				   sizeof(struct in_addr));
+			memcpy(buffer, &peer.s4.sin_port, sizeof(in_port_t));
+			memcpy(buffer + sizeof(in_port_t), &peer.s4.sin_addr, sizeof(struct in_addr));
 			break;
 		case AF_INET6:
-			memcpy(buffer,
-				   &peer.s6.sin6_port,
-				   sizeof(in_port_t));
-			memcpy(buffer + sizeof(in_port_t),
-				   &peer.s6.sin6_addr,
-				   sizeof(struct in6_addr));
+			memcpy(buffer, &peer.s6.sin6_port, sizeof(in_port_t));
+			memcpy(buffer + sizeof(in_port_t), &peer.s6.sin6_addr, sizeof(struct in6_addr));
 			break;
 		default:
 			OPENSSL_assert(0);
@@ -293,8 +297,7 @@ int generate_cookie(SSL *ssl, unsigned char *cookie, unsigned int *cookie_len)
 	return 1;
 }
 
-int verify_cookie(SSL *ssl, const unsigned char *cookie, unsigned int cookie_len)
-	{
+int verify_cookie(SSL *ssl, const unsigned char *cookie, unsigned int cookie_len) {
 	unsigned char *buffer, result[EVP_MAX_MD_SIZE];
 	unsigned int length = 0, resultlength;
 	union {
@@ -304,8 +307,9 @@ int verify_cookie(SSL *ssl, const unsigned char *cookie, unsigned int cookie_len
 	} peer;
 
 	/* If secret isn't initialized yet, the cookie can't be valid */
-	if (!cookie_initialized)
+	if (!cookie_initialized) {
 		return 0;
+	}
 
 	/* Read peer information */
 	(void) BIO_dgram_get_peer(SSL_get_rbio(ssl), &peer);
@@ -323,31 +327,23 @@ int verify_cookie(SSL *ssl, const unsigned char *cookie, unsigned int cookie_len
 			OPENSSL_assert(0);
 			break;
 	}
+
 	length += sizeof(in_port_t);
 	buffer = (unsigned char*) OPENSSL_malloc(length);
 
-	if (buffer == NULL)
-		{
+	if (buffer == NULL) {
 		printf("out of memory\n");
 		return 0;
-		}
+	}
 
 	switch (peer.ss.ss_family) {
 		case AF_INET:
-			memcpy(buffer,
-				   &peer.s4.sin_port,
-				   sizeof(in_port_t));
-			memcpy(buffer + sizeof(in_port_t),
-				   &peer.s4.sin_addr,
-				   sizeof(struct in_addr));
+			memcpy(buffer, &peer.s4.sin_port, sizeof(in_port_t));
+			memcpy(buffer + sizeof(in_port_t), &peer.s4.sin_addr, sizeof(struct in_addr));
 			break;
 		case AF_INET6:
-			memcpy(buffer,
-				   &peer.s6.sin6_port,
-				   sizeof(in_port_t));
-			memcpy(buffer + sizeof(in_port_t),
-				   &peer.s6.sin6_addr,
-				   sizeof(struct in6_addr));
+			memcpy(buffer, &peer.s6.sin6_port, sizeof(in_port_t));
+			memcpy(buffer + sizeof(in_port_t), &peer.s6.sin6_addr, sizeof(struct in6_addr));
 			break;
 		default:
 			OPENSSL_assert(0);
@@ -359,11 +355,12 @@ int verify_cookie(SSL *ssl, const unsigned char *cookie, unsigned int cookie_len
 		 (const unsigned char*) buffer, length, result, &resultlength);
 	OPENSSL_free(buffer);
 
-	if (cookie_len == resultlength && memcmp(result, cookie, resultlength) == 0)
+	if (cookie_len == resultlength && memcmp(result, cookie, resultlength) == 0) {
 		return 1;
+	}
 
 	return 0;
-	}
+}
 
 struct pass_info {
 	union {
@@ -453,6 +450,7 @@ void* connection_handle(void *info) {
 	/* Finish handshake */
 	do { ret = SSL_accept(ssl); }
 	while (ret == 0);
+	
 	if (ret < 0) {
 		perror("SSL_accept");
 		printf("%s\n", ERR_error_string(ERR_get_error(), buf));
@@ -534,7 +532,9 @@ void* connection_handle(void *info) {
 							break;
 						case SSL_ERROR_SYSCALL:
 							printf("Socket read error: ");
-							if (!handle_socket_error()) goto cleanup;
+							if (!handle_socket_error()) {
+								goto cleanup;
+							} 
 							reading = 0;
 							break;
 						case SSL_ERROR_SSL:
@@ -577,8 +577,9 @@ cleanup:
 #endif
 	free(info);
 	SSL_free(ssl);
-	if (verbose)
+	if (verbose) {
 		printf("Thread %lx: done, connection closed.\n", (long) pthread_self());
+	}
 #if WIN32
 	ExitThread(0);
 #else
@@ -607,6 +608,10 @@ void start_server(int port, char *local_address) {
 	struct pass_info *info;
 	const int on = 1, off = 0;
 
+	if (verbose) {
+		printf("\n[%d] INFO: starting server\n", __LINE__);
+	}
+
 	memset(&server_addr, 0, sizeof(struct sockaddr_storage));
 	if (strlen(local_address) == 0) {
 		server_addr.s6.sin6_family = AF_INET6;
@@ -629,6 +634,7 @@ void start_server(int port, char *local_address) {
 #endif
 			server_addr.s6.sin6_port = htons(port);
 		} else {
+			printf("\n[%d] ERROR: can not bind to addr %s\n", __LINE__, local_address);
 			return;
 		}
 	}
@@ -761,6 +767,10 @@ void start_client(char *remote_address, char *local_address, int port, int timet
 	memset((void *) &remote_addr, 0, sizeof(struct sockaddr_storage));
 	memset((void *) &local_addr,  0, sizeof(struct sockaddr_storage));
 
+	if (verbose) {
+		printf("\n[%d] INFO: starting client\n", __LINE__);
+	}
+
 	if (inet_pton(AF_INET, remote_address, &remote_addr.s4.sin_addr) == 1) {
 		remote_addr.s4.sin_family = AF_INET;
 #ifdef HAVE_SIN_LEN
@@ -801,6 +811,7 @@ void start_client(char *remote_address, char *local_address, int port, int timet
 #endif
 			local_addr.s6.sin6_port = htons(0);
 		} else {
+			printf("\n[%d] ERROR: can not bind to addr %s\n", __LINE__, local_address);
 			return;
 		}
 		OPENSSL_assert(remote_addr.ss.ss_family == local_addr.ss.ss_family);
