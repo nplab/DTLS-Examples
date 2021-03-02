@@ -54,6 +54,8 @@
 #include <openssl/rand.h>
 #include <openssl/opensslv.h>
 
+#include "dtls_common.h"
+
 
 #define BUFFER_SIZE          (1<<16)
 #define COOKIE_SECRET_LENGTH 16
@@ -138,65 +140,6 @@ int THREAD_cleanup() {
 	free(mutex_buf);
 	mutex_buf = NULL;
 	return 1;
-}
-
-int handle_socket_error() {
-	switch (errno) {
-		case EINTR:
-			/* Interrupted system call.
-			 * Just ignore.
-			 */
-			printf("Interrupted system call!\n");
-			return 1;
-		case EBADF:
-			/* Invalid socket.
-			 * Must close connection.
-			 */
-			printf("Invalid socket!\n");
-			return 0;
-			break;
-#ifdef EHOSTDOWN
-		case EHOSTDOWN:
-			/* Host is down.
-			 * Just ignore, might be an attacker
-			 * sending fake ICMP messages.
-			 */
-			printf("Host is down!\n");
-			return 1;
-#endif
-#ifdef ECONNRESET
-		case ECONNRESET:
-			/* Connection reset by peer.
-			 * Just ignore, might be an attacker
-			 * sending fake ICMP messages.
-			 */
-			printf("Connection reset by peer!\n");
-			return 1;
-			break;
-#endif
-		case ENOMEM:
-			/* Out of memory.
-			 * Must close connection.
-			 */
-			printf("Out of memory!\n");
-			return 0;
-			break;
-		case EACCES:
-			/* Permission denied.
-			 * Just ignore, we might be blocked
-			 * by some firewall policy. Try again
-			 * and hope for the best.
-			 */
-			printf("Permission denied!\n");
-			return 1;
-			break;
-		default:
-			/* Something unexpected happened */
-			printf("Unexpected error! (errno = %d)\n", errno);
-			return 0;
-			break;
-	}
-	return 0;
 }
 
 int generate_cookie(SSL *ssl, unsigned char *cookie, unsigned int *cookie_len)
@@ -494,7 +437,7 @@ void* connection_handle(void *info) {
 					break;
 				case SSL_ERROR_SYSCALL:
 					printf("Socket read error: ");
-					if (!handle_socket_error()) goto cleanup;
+					if (!handle_socket_error(errno)) goto cleanup;
 					reading = 0;
 					break;
 				case SSL_ERROR_SSL:
@@ -528,7 +471,7 @@ void* connection_handle(void *info) {
 					break;
 				case SSL_ERROR_SYSCALL:
 					printf("Socket write error: ");
-					if (!handle_socket_error()) goto cleanup;
+					if (!handle_socket_error(errno)) goto cleanup;
 					//reading = 0;
 					break;
 				case SSL_ERROR_SSL:
@@ -908,7 +851,7 @@ void start_client(char *remote_address, char *local_address, int port, int lengt
 					break;
 				case SSL_ERROR_SYSCALL:
 					printf("Socket write error: ");
-					if (!handle_socket_error()) exit(1);
+					if (!handle_socket_error(errno)) exit(1);
 					//reading = 0;
 					break;
 				case SSL_ERROR_SSL:
@@ -956,7 +899,7 @@ void start_client(char *remote_address, char *local_address, int port, int lengt
 					break;
 				case SSL_ERROR_SYSCALL:
 					printf("Socket read error: ");
-					if (!handle_socket_error()) exit(1);
+					if (!handle_socket_error(errno)) exit(1);
 					reading = 0;
 					break;
 				case SSL_ERROR_SSL:

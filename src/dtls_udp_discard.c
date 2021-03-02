@@ -56,25 +56,24 @@
 #include <openssl/err.h>
 #include <openssl/rand.h>
 
+#include "dtls_common.h"
+
 
 #define BUFFER_SIZE          (1<<16)
 #define COOKIE_SECRET_LENGTH 16
 
 int verbose = 0;
 int veryverbose = 0;
-int payload_length = 100;
 int done = 0;
 int interrupted = 0;
 unsigned char cookie_secret[COOKIE_SECRET_LENGTH];
 int cookie_initialized = 0;
 
 char Usage[] =
-"Usage: dtls_udp_chargen [options] [address]\n"
+"Usage: dtls_udp_discard [options] [address]\n"
 "Options:\n"
-"        -l      message length (Default: 100 Bytes)\n"
 "        -L      local address\n"
 "        -p      port (Default: 23232)\n"
-"        -t      time to send (Default: 10 sec)\n"
 "        -v      verbose\n"
 "        -V      very verbose\n";
 
@@ -151,72 +150,6 @@ int THREAD_cleanup() {
 	free(mutex_buf);
 	mutex_buf = NULL;
 	return 1;
-}
-
-int handle_socket_error() {
-	switch (errno) {
-		case EINTR:
-			/* Interrupted system call.
-			 * Just ignore.
-			 */
-			printf("Interrupted system call!\n");
-			return 1;
-		case EBADF:
-			/* Invalid socket.
-			 * Must close connection.
-			 */
-			printf("Invalid socket!\n");
-			return 0;
-			break;
-#ifdef EHOSTDOWN
-		case EHOSTDOWN:
-			/* Host is down.
-			 * Just ignore, might be an attacker
-			 * sending fake ICMP messages.
-			 */
-			printf("Host is down!\n");
-			return 1;
-#endif
-#ifdef ECONNRESET
-		case ECONNRESET:
-			/* Connection reset by peer.
-			 * Just ignore, might be an attacker
-			 * sending fake ICMP messages.
-			 */
-			printf("Connection reset by peer!\n");
-			return 1;
-			break;
-#endif
-		case ENOMEM:
-			/* Out of memory.
-			 * Must close connection.
-			 */
-			printf("Out of memory!\n");
-			return 0;
-			break;
-		case EACCES:
-			/* Permission denied.
-			 * Just ignore, we might be blocked
-			 * by some firewall policy. Try again
-			 * and hope for the best.
-			 */
-			printf("Permission denied!\n");
-			return 1;
-			break;
-		case ECONNREFUSED:
-			/* Connection refused.
-			 * We will ingore this for now
-			 */
-			printf("Connection refused!\n");
-			return 1;
-			break;
-		default:
-			/* Something unexpected happened */
-			printf("Unexpected error! (errno = %d)\n", errno);
-			return 0;
-			break;
-	}
-	return 0;
 }
 
 void stop_sender(int sig) {
@@ -532,7 +465,7 @@ void* connection_handle(void *info) {
 							break;
 						case SSL_ERROR_SYSCALL:
 							printf("Socket read error: ");
-							if (!handle_socket_error()) {
+							if (!handle_socket_error(errno)) {
 								goto cleanup;
 							} 
 							reading = 0;
@@ -965,7 +898,7 @@ void start_client(char *remote_address, char *local_address, int port, int timet
 					break;
 				case SSL_ERROR_SYSCALL:
 					printf("Socket write error: ");
-					if (!handle_socket_error()) exit(1);
+					if (!handle_socket_error(errno)) exit(1);
 					//reading = 0;
 					break;
 				case SSL_ERROR_SSL:
@@ -1003,7 +936,7 @@ void start_client(char *remote_address, char *local_address, int port, int timet
 							break;
 						case SSL_ERROR_SYSCALL:
 							printf("Socket read error: ");
-							if (!handle_socket_error()) exit(1);
+							if (!handle_socket_error(errno)) exit(1);
 							reading = 0;
 							break;
 						case SSL_ERROR_SSL:
@@ -1040,7 +973,6 @@ void start_client(char *remote_address, char *local_address, int port, int timet
 int main(int argc, char **argv)
 {
 	int port = 23232;
-	int timetosend = 10;
 	char local_addr[INET6_ADDRSTRLEN+1];
 	char c;
 
@@ -1049,19 +981,11 @@ int main(int argc, char **argv)
 
 	while ((c = getopt(argc, argv, "p:t:l:L:vV")) != -1) {
 		switch(c) {
-			case 'l':
-				payload_length = atoi(optarg);
-				if (payload_length > BUFFER_SIZE)
-					payload_length = BUFFER_SIZE;
-				break;
 			case 'L':
 				strncpy(local_addr, optarg, INET6_ADDRSTRLEN);
 				break;
 			case 'p':
 				port = atoi(optarg);
-				break;
-			case 't':
-				timetosend = atoi(optarg);
 				break;
 			case 'v':
 				verbose = 1;
@@ -1097,7 +1021,7 @@ int main(int argc, char **argv)
 	if (optind == argc) {
 		start_server(port, local_addr);
 	} else {
-		start_client(argv[optind], local_addr, port, timetosend);
+		start_client(argv[optind], local_addr, port);
 	}
 
 	return 0;

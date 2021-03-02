@@ -29,13 +29,13 @@ dtls_sctp_echo: dtls_sctp_echo.c
 	$(CC) $(CFLAGS) $(INCLUDES) -o dtls_sctp_echo dtls_sctp_echo.c $(LFLAGS) $(LIBS)
 
 dtls_udp_chargen: dtls_udp_chargen.c
-	$(CC) $(CFLAGS) $(INCLUDES) -o dtls_udp_chargen dtls_udp_chargen.c $(LFLAGS) $(LIBS)
+	$(CC) $(CFLAGS) $(INCLUDES) -o dtls_udp_chargen dtls_udp_chargen.c  dtls_common.c $(LFLAGS) $(LIBS)
 
 dtls_udp_discard: dtls_udp_discard.c
-	$(CC) $(CFLAGS) $(INCLUDES) -o dtls_udp_discard dtls_udp_discard.c $(LFLAGS) $(LIBS)
+	$(CC) $(CFLAGS) $(INCLUDES) -o dtls_udp_discard dtls_udp_discard.c  dtls_common.c $(LFLAGS) $(LIBS)
 
 dtls_udp_echo: dtls_udp_echo.c
-	$(CC) $(CFLAGS) $(INCLUDES) -o dtls_udp_echo dtls_udp_echo.c $(LFLAGS) $(LIBS)
+	$(CC) $(CFLAGS) $(INCLUDES) -o dtls_udp_echo dtls_udp_echo.c  dtls_common.c $(LFLAGS) $(LIBS)
 
 clean:
 	rm -f dtls_sctp_chargen
