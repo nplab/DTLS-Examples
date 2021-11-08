@@ -619,14 +619,20 @@ void start_server(int port, char *local_address) {
 	//SSL_CTX_set_cipher_list(ctx, "ALL:NULL:eNULL:aNULL");
 	SSL_CTX_set_session_cache_mode(ctx, SSL_SESS_CACHE_OFF);
 
-	if (!SSL_CTX_use_certificate_file(ctx, "certs/server-cert.pem", SSL_FILETYPE_PEM))
+	if (!SSL_CTX_use_certificate_file(ctx, "certs/server-cert.pem", SSL_FILETYPE_PEM)) {
 		printf("\nERROR: no certificate found!");
+    abort();
+  }
 
-	if (!SSL_CTX_use_PrivateKey_file(ctx, "certs/server-key.pem", SSL_FILETYPE_PEM))
+	if (!SSL_CTX_use_PrivateKey_file(ctx, "certs/server-key.pem", SSL_FILETYPE_PEM)) {
 		printf("\nERROR: no private key found!");
+    abort();
+  }
 
-	if (!SSL_CTX_check_private_key (ctx))
+	if (!SSL_CTX_check_private_key (ctx)) {
 		printf("\nERROR: invalid private key!");
+    abort();
+  }
 
 	/* Client has to authenticate */
 	SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE, dtls_verify_callback);
